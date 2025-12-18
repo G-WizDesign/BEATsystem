@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RPG Dice Roller</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1 class="title">BEAT System Dice Roller</h1>
+        </header>
+
+        <main>
+            <div class="polyhedral-selector">
+                <h2>Select FOUNDATION Die</h2>
+                <div class="poly-grid">
+                    <div class="poly-option" data-sides="4">
+                        <div class="poly-shape d4-shape"></div>
+                        <div class="poly-label">d4</div>
+                    </div>
+                    <div class="poly-option" data-sides="6">
+                        <div class="poly-shape d6-shape"></div>
+                        <div class="poly-label">d6</div>
+                    </div>
+                    <div class="poly-option" data-sides="8">
+                        <div class="poly-shape d8-shape"></div>
+                        <div class="poly-label">d8</div>
+                    </div>
+                    <div class="poly-option" data-sides="10">
+                        <div class="poly-shape d10-shape"></div>
+                        <div class="poly-label">d10</div>
+                    </div>
+                    <div class="poly-option" data-sides="12">
+                        <div class="poly-shape d12-shape"></div>
+                        <div class="poly-label">d12</div>
+                    </div>
+                    <div class="poly-option" data-sides="20">
+                        <div class="poly-shape d20-shape"></div>
+                        <div class="poly-label">d20</div>
+                    </div>
+                </div>
+                <div class="selected-poly" id="selected-poly">
+                    <span>No die selected</span>
+                </div>
+            </div>
+
+            <div class="pip-dice-section">
+                <h2>Pip Dice (d6)</h2>
+                <div class="pip-controls">
+                    <button class="btn-decrease" id="pip-decrease">-</button>
+                    <span class="pip-count" id="pip-count">0</span>
+                    <button class="btn-increase" id="pip-increase">+</button>
+                </div>
+            </div>
+
+
+
+            <div class="roll-section">
+                <button id="roll-btn" class="roll-button">ROLL DICE</button>
+                <button id="clear-btn" class="clear-button">Clear All</button>
+            </div>
+
+            <div class="results-section">
+                <div class="current-roll">
+                    <h2>Roll Results</h2>
+                    <div class="poly-result" id="poly-result">
+                        <h3>Foundation Die</h3>
+                        <div id="poly-dice-display"></div>
+                    </div>
+                    <div class="pip-result" id="pip-result">
+                        <h3>Pip Dice</h3>
+                        <div id="pip-dice-display" class="pip-dice-container"></div>
+                    </div>
+                    <div id="roll-total" class="total"></div>
+                    <div id="doubles-count" class="doubles-display"></div>
+                    <div id="ones-count" class="ones-display"></div>
+                </div>
+            </div>
+
+            <div class="history-section">
+                <h2>Roll History</h2>
+                <button id="clear-history" class="clear-history-btn">Clear History</button>
+                <div id="roll-history" class="roll-history"></div>
+            </div>
+        </main>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
