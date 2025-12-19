@@ -24,9 +24,9 @@ header {
 }
 
 .title {
-    font-family: 'p22-morris', serif;
+    font-family: "p22-morris-golden", serif;
     font-size: 3rem;
-    font-weight: 900;
+    font-weight: 400;
     background: linear-gradient(45deg, #4c546d, #6f687a, #8b7983, #a58d89);
     background-size: 400% 400%;
     -webkit-background-clip: text;
