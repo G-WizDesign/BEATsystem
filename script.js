@@ -126,12 +126,12 @@ class DiceRoller {
 
         // Display results
         this.displayRoll(polyResult, pipResults, totalSum);
-        
-        // Add to history
-        this.addToHistory(polyResult, pipResults, totalSum);
 
         // Visual feedback
         this.animateRoll();
+        
+        // Add to history after roll completes
+        this.addToHistoryAfterRoll(polyResult, pipResults, totalSum);
     }
 
     displayRoll(polyResult, pipResults, total) {
@@ -240,6 +240,7 @@ class DiceRoller {
         }
 
         this.recalculateTotal();
+        this.updateLatestHistoryEntry();
     }
 
     updateDoublesCount() {
@@ -366,11 +367,21 @@ class DiceRoller {
             formula += `${pipResults.length}d6 (pips)`;
         }
 
+        // Calculate additional roll details
+        const hasDoubles = this.calculateDoubles(polyResult, pipResults);
+        const onesCount = this.calculateOnesCount(polyResult, pipResults);
+        const selectedPipCount = this.selectedPipDice.size;
+        const finalTotal = this.calculateFinalTotal(polyResult, pipResults);
+
         const historyItem = {
             formula: formula || 'No dice rolled',
             polyResult: polyResult,
             pipResults: pipResults,
             total: total,
+            finalTotal: finalTotal,
+            hasDoubles: hasDoubles,
+            onesCount: onesCount,
+            selectedPipCount: selectedPipCount,
             timestamp: timestamp
         };
 
@@ -392,10 +403,38 @@ class DiceRoller {
         this.rollHistory.forEach(item => {
             const historyDiv = document.createElement('div');
             historyDiv.className = 'history-item';
+            
+            // Build details string
+            let detailsHtml = '';
+            
+            // Show final total (different from initial if pips were spent)
+            const finalTotal = item.finalTotal !== undefined ? item.finalTotal : item.total;
+            detailsHtml += `<div class="history-result">Final Total: ${finalTotal}</div>`;
+            
+            // Show if initial total was different
+            if (item.selectedPipCount > 0 && item.total !== finalTotal) {
+                detailsHtml += `<div class="history-initial-total">Initial Total: ${item.total}</div>`;
+            }
+            
+            // Show pip spending
+            if (item.selectedPipCount > 0) {
+                detailsHtml += `<div class="history-pip-spent">🎯 ${item.selectedPipCount} pip dice spent</div>`;
+            }
+            
+            // Show doubles
+            if (item.hasDoubles) {
+                detailsHtml += `<div class="history-doubles">⚡ Doubles rolled - Opponent gets BEAT</div>`;
+            }
+            
+            // Show ones count
+            if (item.onesCount > 0) {
+                detailsHtml += `<div class="history-ones">💔 ${item.onesCount} ones rolled - Take Composure/Weariness</div>`;
+            }
+            
             historyDiv.innerHTML = `
                 <div class="history-timestamp">${item.timestamp}</div>
                 <div class="history-formula">${item.formula}</div>
-                <div class="history-result">Result: ${item.total}</div>
+                ${detailsHtml}
             `;
             historyContainer.appendChild(historyDiv);
         });
@@ -554,6 +593,104 @@ class DiceRoller {
         this.updateDoublesCount();
         this.updateOnesCount();
         this.recalculateTotal();
+    }
+
+    calculateDoubles(polyResult, pipResults) {
+        const polyResults = Array.isArray(polyResult) ? polyResult : [];
+        const pipResultsArray = pipResults || [];
+        
+        // Check if any polyhedral dice match any pip dice (excluding 1s)
+        for (let polyValue of polyResults) {
+            for (let pipValue of pipResultsArray) {
+                if (polyValue === pipValue && polyValue !== 1) {
+                    return true;
+                }
+            }
+        }
+        
+        // Check if any pip dice match each other (excluding 1s)
+        for (let i = 0; i < pipResultsArray.length; i++) {
+            for (let j = i + 1; j < pipResultsArray.length; j++) {
+                if (pipResultsArray[i] === pipResultsArray[j] && pipResultsArray[i] !== 1) {
+                    return true;
+                }
+            }
+        }
+        
+        // Check if any polyhedral dice match each other (exploding dice, excluding 1s)
+        for (let i = 0; i < polyResults.length; i++) {
+            for (let j = i + 1; j < polyResults.length; j++) {
+                if (polyResults[i] === polyResults[j] && polyResults[i] !== 1) {
+                    return true;
+                }
+            }
+        }
+        
+        return false;
+    }
+
+    calculateOnesCount(polyResult, pipResults) {
+        let onesCount = 0;
+        
+        // Count ones from polyhedral dice
+        const polyResults = Array.isArray(polyResult) ? polyResult : [];
+        polyResults.forEach(result => {
+            if (result === 1) {
+                onesCount++;
+            }
+        });
+        
+        // Count ones from pip dice
+        (pipResults || []).forEach(result => {
+            if (result === 1) {
+                onesCount++;
+            }
+        });
+        
+        return onesCount;
+    }
+
+    calculateFinalTotal(polyResult, pipResults) {
+        let total = 0;
+
+        // Add polyhedral dice (excluding 1s)
+        const polyResults = Array.isArray(polyResult) ? polyResult : [];
+        polyResults.forEach(result => {
+            if (result !== 1) {
+                total += result;
+            }
+        });
+
+        // Add pip dice (excluding 1s and selected dice)
+        (pipResults || []).forEach((result, index) => {
+            if (result !== 1 && !this.selectedPipDice.has(index)) {
+                total += result;
+            }
+        });
+
+        return total;
+    }
+
+    updateLatestHistoryEntry() {
+        // Update the most recent history entry when pip dice selection changes
+        if (this.rollHistory.length > 0) {
+            const latestEntry = this.rollHistory[0];
+            latestEntry.selectedPipCount = this.selectedPipDice.size;
+            latestEntry.finalTotal = this.calculateFinalTotal(latestEntry.polyResult, latestEntry.pipResults);
+            
+            this.updateHistoryDisplay();
+            this.saveHistory();
+        }
+    }
+
+    addToHistoryAfterRoll(polyResult, pipResults, totalSum) {
+        // Calculate timing based on pip dice animation
+        const pipDiceCount = pipResults.length;
+        const pipAnimationTime = pipDiceCount > 0 ? 3000 : 1500; // Wait for animations
+        
+        setTimeout(() => {
+            this.addToHistory(polyResult, pipResults, totalSum);
+        }, pipAnimationTime);
     }
 
     showFinalResults() {

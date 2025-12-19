@@ -5,7 +5,7 @@
 }
 
 body {
-    font-family: 'Orbitron', monospace;
+    font-family: 'lexia', serif;
     background: linear-gradient(135deg, #181923, #292d41, #38405d);
     color: #ffffff;
     min-height: 100vh;
@@ -24,6 +24,7 @@ header {
 }
 
 .title {
+    font-family: 'p22-morris', serif;
     font-size: 3rem;
     font-weight: 900;
     background: linear-gradient(45deg, #4c546d, #6f687a, #8b7983, #a58d89);
@@ -62,6 +63,7 @@ header {
 }
 
 .polyhedral-selector h2 {
+    font-family: 'museo', sans-serif;
     text-align: center;
     margin-bottom: 20px;
     font-size: 1.5rem;
@@ -186,6 +188,7 @@ header {
 }
 
 .pip-dice-section h2 {
+    font-family: 'museo', sans-serif;
     color: #b59e90;
     margin-bottom: 15px;
     text-align: center;
@@ -244,6 +247,7 @@ header {
 }
 
 .custom-dice-section h2 {
+    font-family: 'museo', sans-serif;
     color: #b59e90;
     margin-bottom: 15px;
     text-align: center;
@@ -268,7 +272,7 @@ header {
     border-radius: 8px;
     padding: 8px 12px;
     color: #ffffff;
-    font-family: 'Orbitron', monospace;
+    font-family: 'lexia', serif;
     font-size: 1rem;
     width: 100px;
     text-align: center;
@@ -295,7 +299,7 @@ header {
     padding: 15px 30px;
     font-size: 1.3rem;
     font-weight: bold;
-    font-family: 'Orbitron', monospace;
+    font-family: 'museo', sans-serif;
     cursor: pointer;
     transition: all 0.3s ease;
     margin: 0 10px;
@@ -331,6 +335,7 @@ header {
 }
 
 .current-roll h2 {
+    font-family: 'museo', sans-serif;
     color: #b59e90;
     text-align: center;
     margin-bottom: 20px;
@@ -342,6 +347,7 @@ header {
 }
 
 .poly-result h3, .pip-result h3 {
+    font-family: 'museo', sans-serif;
     color: #ffffff;
     margin-bottom: 10px;
     font-size: 1.2rem;
@@ -693,6 +699,7 @@ header {
 }
 
 .history-section h2 {
+    font-family: 'museo', sans-serif;
     color: #b59e90;
     text-align: center;
     margin-bottom: 20px;
@@ -708,7 +715,7 @@ header {
     cursor: pointer;
     margin-bottom: 15px;
     transition: all 0.3s ease;
-    font-family: 'Orbitron', monospace;
+    font-family: 'lexia', serif;
 }
 
 .clear-history-btn:hover {
@@ -751,6 +758,31 @@ header {
     color: #b59e90;
     font-weight: bold;
     font-size: 1.1rem;
+}
+
+.history-initial-total {
+    color: rgba(181, 158, 144, 0.7);
+    font-size: 0.9rem;
+    font-style: italic;
+}
+
+.history-pip-spent {
+    color: #8b7983;
+    font-size: 0.9rem;
+    margin-top: 2px;
+}
+
+.history-doubles {
+    color: #a58d89;
+    font-size: 0.9rem;
+    font-weight: bold;
+    margin-top: 2px;
+}
+
+.history-ones {
+    color: #6f687a;
+    font-size: 0.9rem;
+    margin-top: 2px;
 }
 
 .history-timestamp {
