@@ -32,6 +32,9 @@ class DiceRoller {
         // Clear history button
         document.getElementById('clear-history').addEventListener('click', () => this.clearHistory());
 
+        // Export history button
+        document.getElementById('export-history').addEventListener('click', () => this.exportHistory());
+
         // Theme toggle button
         const themeToggle = document.getElementById('theme-toggle');
         if (themeToggle) {
@@ -482,7 +485,94 @@ class DiceRoller {
         this.showMessage("History cleared!");
     }
 
+    exportHistory() {
+        if (this.rollHistory.length === 0) {
+            this.showMessage("No history to export!");
+            return;
+        }
 
+        // Create formatted text output
+        let exportText = "═══════════════════════════════════════════\n";
+        exportText += "          BEAT SYSTEM DICE ROLLER\n";
+        exportText += "              ROLL HISTORY\n";
+        exportText += "═══════════════════════════════════════════\n";
+        exportText += `Export Date: ${new Date().toLocaleString()}\n`;
+        exportText += `Total Rolls: ${this.rollHistory.length}\n`;
+        exportText += "═══════════════════════════════════════════\n\n";
+
+        this.rollHistory.forEach((item, index) => {
+            exportText += `ROLL #${this.rollHistory.length - index}\n`;
+            exportText += `Time: ${item.timestamp}\n`;
+            exportText += `Formula: ${item.formula}\n`;
+            
+            // Show final total (different from initial if pips were spent)
+            const finalTotal = item.finalTotal !== undefined ? item.finalTotal : item.total;
+            exportText += `Final Total: ${finalTotal}\n`;
+            
+            // Show if initial total was different
+            if (item.selectedPipCount > 0 && item.total !== finalTotal) {
+                exportText += `Initial Total: ${item.total}\n`;
+            }
+            
+            // Show pip spending
+            if (item.selectedPipCount > 0) {
+                exportText += `🎯 ${item.selectedPipCount} pip dice spent\n`;
+            }
+            
+            // Show doubles
+            if (item.hasDoubles) {
+                exportText += `⚡ Doubles rolled - Generate XP\n`;
+            }
+            
+            // Show ones count
+            if (item.onesCount > 0) {
+                exportText += `💔 ${item.onesCount} ones rolled - Take Composure/Weariness\n`;
+            }
+            
+            // Show detailed results
+            if (item.polyResult && item.polyResult.length > 0) {
+                exportText += `Foundation Die Results: ${item.polyResult.join(', ')}`;
+                if (item.polyResult.length > 1) {
+                    exportText += ` (exploded ${item.polyResult.length} times)`;
+                }
+                exportText += `\n`;
+            }
+            
+            if (item.pipResults && item.pipResults.length > 0) {
+                exportText += `Pip Dice Results: ${item.pipResults.join(', ')}\n`;
+            }
+            
+            exportText += "─────────────────────────────────────────\n\n";
+        });
+
+        exportText += "═══════════════════════════════════════════\n";
+        exportText += "        End of Roll History Export\n";
+        exportText += "═══════════════════════════════════════════";
+
+        // Create blob and download
+        const blob = new Blob([exportText], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        
+        // Create temporary download link
+        const downloadLink = document.createElement('a');
+        downloadLink.href = url;
+        
+        // Generate filename with current date and time
+        const now = new Date();
+        const dateString = now.toISOString().split('T')[0]; // YYYY-MM-DD
+        const timeString = now.toTimeString().split(' ')[0].replace(/:/g, '-'); // HH-MM-SS
+        downloadLink.download = `dice-history-${dateString}-${timeString}.txt`;
+        
+        // Trigger download
+        document.body.appendChild(downloadLink);
+        downloadLink.click();
+        document.body.removeChild(downloadLink);
+        
+        // Clean up
+        URL.revokeObjectURL(url);
+        
+        this.showMessage(`History exported! (${this.rollHistory.length} rolls)`);
+    }
 
     animateRoll() {
         const rollButton = document.getElementById('roll-btn');

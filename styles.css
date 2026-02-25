@@ -842,7 +842,16 @@ header {
     margin-bottom: 20px;
 }
 
-.clear-history-btn {
+.history-controls {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+    justify-content: flex-start;
+    align-items: center;
+}
+
+.clear-history-btn,
+.export-history-btn {
     background: var(--color-primary);
     color: var(--text-button);
     border: none;
@@ -850,14 +859,23 @@ header {
     padding: 8px 15px;
     font-size: 0.9rem;
     cursor: pointer;
-    margin-bottom: 15px;
     transition: all 0.3s ease;
     font-family: 'lexia', serif;
+    margin: 0;
 }
 
-.clear-history-btn:hover {
+.export-history-btn {
+    background: linear-gradient(45deg, var(--color-secondary), var(--color-tertiary));
+}
+
+.clear-history-btn:hover,
+.export-history-btn:hover {
     background: var(--color-secondary);
     transform: translateY(-1px);
+}
+
+.export-history-btn:hover {
+    background: linear-gradient(45deg, var(--color-tertiary), var(--color-accent));
 }
 
 .roll-history {
