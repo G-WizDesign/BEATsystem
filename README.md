@@ -13,13 +13,13 @@ A specialized dice rolling interface designed for the BEAT tabletop RPG system. 
 
 ### ⚡ BEAT System Rules
 - **Composure/Weariness**: Automatically counts 1s rolled and displays penalty
-- **Doubles Detection**: Identifies matching values (excluding 1s) that give opponents a BEAT
+- **Doubles Detection**: Identifies matching values (excluding 1s) that generate experience
 - **Dynamic Totals**: Real-time calculation as pip dice are spent or unspent
 - **Sequential Explosions**: Exploding dice roll and animate one at a time for authentic suspense
 
 ### 🎨 Dramatic Interface
 - **Dark Fantasy Aesthetic**: Dark gradients with neon accent colors using the Museo and Lexia fonts
-- **Cinematic Animations**: 3-second rolling sequences with hidden results for maximum suspense
+- **Cinematic Animations**: 2-second rolling sequences with hidden results for maximum suspense
 - **Energy Effects**: High-value pip dice (4+) pulse and shake with energy
 - **Visual Feedback**: Clear indicators for excluded dice, selectable dice, and spent dice
 
@@ -54,7 +54,7 @@ A specialized dice rolling interface designed for the BEAT tabletop RPG system. 
 - **Energy Animation**: High-value dice pulse and shake to show their potential
 
 ### Rule Automation
-- **Doubles = BEAT**: When any dice show matching values (except 1s), your opponent gets a BEAT
+- **Doubles = Experience**: When any dice show matching values (except 1s), you or an NPC get experience
 - **1s = Consequences**: All 1s are automatically counted for Composure/Weariness penalties
 - **Dynamic Totals**: Your total updates in real-time as you spend pip dice
 
@@ -81,7 +81,7 @@ BEAT Dice Roller/
 Edit the dice selection limits in the `increasePipDice()` and `selectPolyhedral()` functions.
 
 ### Animation Timing
-Adjust the 3-second animation duration in the `animateRoll()` and related animation methods.
+Adjust the 2-second animation duration in the `animateRoll()` and related animation methods.
 
 ### Visual Theme
 Modify the cyberpunk color palette in `styles.css` - the design uses the BEAT system's signature dark blues and warm accent colors.
@@ -96,7 +96,7 @@ The codebase includes advanced implementations for:
 
 ## Usage Tips
 
-1. **Dramatic Timing**: Let the full 3-second animation play for maximum table impact
+1. **Dramatic Timing**: Let the full 2-second animation play for maximum table impact
 2. **Strategic Spending**: Consider which pip dice to spend before committing to actions
 3. **Rule Integration**: The automated rule calculations help maintain game flow
 4. **History Tracking**: Use roll history to review important game moments
