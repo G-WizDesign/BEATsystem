@@ -73,6 +73,40 @@ body.light-mode {
     --selection-gold-shadow: rgba(132, 84, 96, 0.5);
 }
 
+/* High Contrast Mode Colors (for accessibility/color-blind users) */
+body.high-contrast-mode {
+    --bg-primary: #0a0a0a;
+    --bg-secondary: #1a1a1a;
+    --bg-tertiary: #2a2a2a;
+    --bg-glass: rgba(100, 143, 255, 0.1);
+    --bg-glass-border: rgba(100, 143, 255, 0.3);
+    
+    --color-primary: #648FFF;
+    --color-secondary: #785EF0;
+    --color-tertiary: #DC267F;
+    --color-accent: #FE6100;
+    --color-highlight: #FFB000;
+    
+    --text-primary: #ffffff;
+    --text-secondary: rgba(255, 255, 255, 0.9);
+    --text-muted: rgba(255, 255, 255, 0.7);
+    --text-contrast: #000000;
+    --text-button: #ffffff;
+    --text-selected: #000000;
+    
+    --border-primary: transparent;
+    --border-active: #FFB000;
+    --shadow-primary: rgba(0, 0, 0, 0.5);
+    --shadow-accent: rgba(255, 176, 0, 0.4);
+    
+    --dice-bg: linear-gradient(135deg, #ffffff, #f5f5f5);
+    --dice-border: #648FFF;
+    --dice-pip: #000000;
+    
+    --selection-gold: #FFB000;
+    --selection-gold-shadow: rgba(255, 176, 0, 0.6);
+}
+
 body {
     font-family: 'lexia', serif;
     background: linear-gradient(135deg, var(--bg-primary), var(--bg-secondary), var(--bg-tertiary));
@@ -361,9 +395,10 @@ header {
     margin: 30px 0;
 }
 
-.roll-button,
-.clear-button {
-    background: linear-gradient(45deg, var(--color-secondary), var(--color-accent));
+.roll-button {
+    background: linear-gradient(120deg, var(--color-primary), var(--color-accent), var(--color-highlight));
+    background-size: 200% 200%;
+    background-position: 100% 50%;
     color: var(--text-button);
     border: none;
     border-radius: 15px;
@@ -372,22 +407,38 @@ header {
     font-weight: bold;
     font-family: 'museo', sans-serif;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: transform 0.3s ease, box-shadow 0.3s ease, background-position 0.5s ease;
     margin: 0 10px;
     text-transform: uppercase;
 }
 
 .clear-button {
-    background: linear-gradient(45deg, var(--color-primary), var(--color-secondary));
+    background: linear-gradient(120deg, var(--bg-secondary), var(--color-secondary), var(--color-accent));
+    background-size: 200% 200%;
+    background-position: 100% 50%;
     color: var(--text-button);
+    border: none;
+    border-radius: 15px;
     padding: 10px 20px;
     font-size: 1rem;
+    font-weight: bold;
+    font-family: 'museo', sans-serif;
+    cursor: pointer;
+    transition: transform 0.3s ease, box-shadow 0.3s ease, background-position 0.5s ease;
+    margin: 0 10px;
+    text-transform: uppercase;
 }
 
-.roll-button:hover,
+.roll-button:hover {
+    transform: scale(1.05);
+    box-shadow: 0 10px 20px var(--shadow-primary);
+    background-position: 0% 50%;
+}
+
 .clear-button:hover {
     transform: scale(1.05);
     box-shadow: 0 10px 20px var(--shadow-primary);
+    background-position: 0% 50%;
 }
 
 .roll-button:active,
@@ -403,7 +454,16 @@ header {
     margin-bottom: 25px;
     backdrop-filter: blur(10px);
     border: 1px solid var(--bg-glass-border);
-    min-height: 200px;
+    min-height: 483px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+}
+
+.current-roll {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
 }
 
 .current-roll h2 {
@@ -411,11 +471,13 @@ header {
     color: var(--color-highlight);
     text-align: center;
     margin-bottom: 20px;
+    flex-shrink: 0;
 }
 
 .poly-result, .pip-result {
     margin-bottom: 20px;
     text-align: center;
+    flex-shrink: 0;
 }
 
 .poly-result h3, .pip-result h3 {
@@ -727,7 +789,8 @@ header {
     color: var(--color-highlight);
     text-shadow: 0 0 20px var(--shadow-accent);
     animation: pulse 0.5s ease-in-out;
-    margin-top: 20px;
+    margin-top: auto;
+    flex-shrink: 0;
 }
 
 .doubles-display {
@@ -737,6 +800,7 @@ header {
     color: var(--color-accent);
     margin-top: 10px;
     font-style: italic;
+    flex-shrink: 0;
 }
 
 .ones-display {
@@ -746,6 +810,7 @@ header {
     color: var(--text-primary);
     margin-top: 10px;
     font-style: italic;
+    flex-shrink: 0;
 }
 
 @keyframes pulse {
@@ -951,6 +1016,58 @@ body.light-mode .history-pip-spent {
 body.light-mode .theme-toggle {
     color: #2B4F60;
     border-color: #2B4F60;
+}
+
+/* High Contrast Mode Specific Overrides */
+body.high-contrast-mode .poly-result-value {
+    color: #ffffff;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+    font-weight: 900;
+}
+
+body.high-contrast-mode .poly-label {
+    color: #ffffff;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+    font-weight: 900;
+}
+
+body.high-contrast-mode .ones-display {
+    color: #FE6100;
+    font-weight: 900;
+}
+
+body.high-contrast-mode .pip-count {
+    color: #FFB000;
+    font-weight: 900;
+}
+
+body.high-contrast-mode .poly-result-shape {
+    color: #ffffff;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+    font-weight: 900;
+}
+
+body.high-contrast-mode .roll-button,
+body.high-contrast-mode .clear-button {
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+    font-weight: 900;
+}
+
+body.high-contrast-mode .btn-decrease,
+body.high-contrast-mode .btn-increase {
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+    font-weight: 900;
+}
+
+body.high-contrast-mode .history-pip-spent {
+    color: #DC267F;
+    font-weight: 900;
+}
+
+body.high-contrast-mode .theme-toggle {
+    color: #FFB000;
+    border-color: #648FFF;
+    font-weight: 900;
 }
 
 .theme-toggle-text {

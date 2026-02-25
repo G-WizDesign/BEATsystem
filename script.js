@@ -735,16 +735,20 @@ class DiceRoller {
         const messageDiv = document.createElement('div');
         messageDiv.style.cssText = `
             position: fixed;
-            top: 20px;
+            top: 80px;
             right: 20px;
             background: linear-gradient(45deg, #8b7983, #6f687a);
             color: white;
             padding: 15px 25px;
             border-radius: 8px;
-            font-family: 'Orbitron', monospace;
+            font-family: 'lexia', serif;
             font-weight: bold;
-            z-index: 1000;
+            z-index: 999;
             animation: slideInRight 0.3s ease-out;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            max-width: 300px;
+            word-wrap: break-word;
         `;
         messageDiv.textContent = message;
         document.body.appendChild(messageDiv);
@@ -798,8 +802,28 @@ class DiceRoller {
     }
 
     toggleTheme() {
-        const currentTheme = document.body.classList.contains('light-mode') ? 'light' : 'dark';
-        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+        let currentTheme = 'dark';
+        if (document.body.classList.contains('light-mode')) {
+            currentTheme = 'light';
+        } else if (document.body.classList.contains('high-contrast-mode')) {
+            currentTheme = 'high-contrast';
+        }
+        
+        let newTheme;
+        switch (currentTheme) {
+            case 'dark':
+                newTheme = 'light';
+                break;
+            case 'light':
+                newTheme = 'high-contrast';
+                break;
+            case 'high-contrast':
+                newTheme = 'dark';
+                break;
+            default:
+                newTheme = 'dark';
+        }
+        
         this.setTheme(newTheme);
     }
 
@@ -815,14 +839,26 @@ class DiceRoller {
         const toggleIcon = toggleButton.querySelector('.theme-toggle-icon');
         const toggleText = toggleButton.querySelector('.theme-toggle-text');
 
-        if (theme === 'light') {
-            body.classList.add('light-mode');
-            if (toggleIcon) toggleIcon.textContent = '☀️';
-            if (toggleText) toggleText.textContent = 'Light Mode';
-        } else {
-            body.classList.remove('light-mode');
-            if (toggleIcon) toggleIcon.textContent = '🌙';
-            if (toggleText) toggleText.textContent = 'Dark Mode';
+        // Remove all theme classes first
+        body.classList.remove('light-mode', 'high-contrast-mode');
+        
+        switch (theme) {
+            case 'light':
+                body.classList.add('light-mode');
+                if (toggleIcon) toggleIcon.textContent = '☀️';
+                if (toggleText) toggleText.textContent = 'Light Mode';
+                break;
+            case 'high-contrast':
+                body.classList.add('high-contrast-mode');
+                if (toggleIcon) toggleIcon.textContent = '🎯';
+                if (toggleText) toggleText.textContent = 'High Contrast';
+                break;
+            case 'dark':
+            default:
+                // Dark mode is the default (no classes needed)
+                if (toggleIcon) toggleIcon.textContent = '🌙';
+                if (toggleText) toggleText.textContent = 'Dark Mode';
+                break;
         }
 
         // Save theme preference
