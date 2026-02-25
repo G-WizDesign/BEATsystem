@@ -423,7 +423,7 @@ class DiceRoller {
             
             // Show doubles
             if (item.hasDoubles) {
-                detailsHtml += `<div class="history-doubles">⚡ Doubles rolled - Opponent gets BEAT</div>`;
+                detailsHtml += `<div class="history-doubles">⚡ Doubles rolled - Generate XP</div>`;
             }
             
             // Show ones count
@@ -514,12 +514,12 @@ class DiceRoller {
             
             Array.from(pipDiceContainer.children).forEach((die, index) => {
                 setTimeout(() => {
-                    die.style.animation = 'diceRoll 1.5s ease-in-out 2';
+                    die.style.animation = 'diceRoll 1s ease-in-out 2';
                     // Clear inline animation and rolling class after it completes
                     setTimeout(() => {
                         die.style.animation = '';
                         die.classList.remove('rolling');
-                    }, 3000);
+                    }, 2000);
                 }, index * 150);
             });
         }
@@ -533,7 +533,7 @@ class DiceRoller {
             if (polyDisplay.children.length > diceIndex) {
                 const polyVisual = polyDisplay.children[diceIndex];
                 polyVisual.classList.add('rolling');
-                polyVisual.style.animation = 'polyhedralRoll 1.5s ease-in-out 2';
+                polyVisual.style.animation = 'polyhedralRoll 1s ease-in-out 2';
                 
                 setTimeout(() => {
                     polyVisual.style.animation = '';
@@ -547,7 +547,7 @@ class DiceRoller {
                         // No explosion, show final results
                         this.showFinalResults();
                     }
-                }, 3000);
+                }, 2000);
             } else {
                 this.showFinalResults();
             }
@@ -572,7 +572,7 @@ class DiceRoller {
         
         // Animate the new die
         polyVisual.classList.add('rolling');
-        polyVisual.style.animation = 'polyhedralRoll 1.5s ease-in-out 2';
+        polyVisual.style.animation = 'polyhedralRoll 1s ease-in-out 2';
         
         setTimeout(() => {
             polyVisual.style.animation = '';
@@ -585,7 +585,7 @@ class DiceRoller {
                 // No more explosions, show final results
                 this.showFinalResults();
             }
-        }, 3000);
+        }, 2000);
     }
 
     updateTotalFromResults() {
@@ -686,7 +686,7 @@ class DiceRoller {
     addToHistoryAfterRoll(polyResult, pipResults, totalSum) {
         // Calculate timing based on pip dice animation
         const pipDiceCount = pipResults.length;
-        const pipAnimationTime = pipDiceCount > 0 ? 3000 : 1500; // Wait for animations
+        const pipAnimationTime = pipDiceCount > 0 ? 2000 : 1000; // Wait for animations
         
         setTimeout(() => {
             this.addToHistory(polyResult, pipResults, totalSum);
@@ -696,7 +696,7 @@ class DiceRoller {
     showFinalResults() {
         // Calculate timing based on pip dice animation
         const pipDiceCount = this.currentPipResults.length;
-        const pipAnimationTime = pipDiceCount > 0 ? 3000 : 0;
+        const pipAnimationTime = pipDiceCount > 0 ? 2000 : 0;
         
         setTimeout(() => {
             const totalElement = document.getElementById('roll-total');
@@ -706,7 +706,7 @@ class DiceRoller {
             totalElement.style.opacity = '1';
             doublesElement.style.opacity = '1';
             onesElement.style.opacity = '1';
-        }, Math.max(0, pipAnimationTime - 2500)); // Show results near end of pip animation
+        }, Math.max(0, pipAnimationTime - 1700)); // Show results near end of pip animation
     }
 
     showMessage(message) {
