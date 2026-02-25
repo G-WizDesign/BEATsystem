@@ -280,7 +280,7 @@ class DiceRoller {
         // Update doubles display
         const doublesElement = document.getElementById('doubles-count');
         if (hasDoubles) {
-            doublesElement.textContent = 'Doubles Rolled: Opponent gets a BEAT';
+            doublesElement.textContent = 'Doubles Rolled: Generate Experience';
         } else {
             doublesElement.textContent = '';
         }
