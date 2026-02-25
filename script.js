@@ -281,7 +281,7 @@ class DiceRoller {
             }
         }
         
-        // Check if any polyhedral dice match each other (exploding dice, excluding 1s)
+        // Check if any polyhedral dice match each other (including exploded dice, excluding 1s)
         for (let i = 0; i < polyResults.length; i++) {
             for (let j = i + 1; j < polyResults.length; j++) {
                 if (polyResults[i] === polyResults[j] && polyResults[i] !== 1) {
@@ -552,12 +552,16 @@ class DiceRoller {
                     polyVisual.style.animation = '';
                     polyVisual.classList.remove('rolling');
                     
+                    // Update doubles count after initial die animation completes
+                    this.updateDoublesCount();
+                    
                     // Check if this die exploded and roll next if needed
                     const diceValue = this.lastPolyResult[diceIndex];
                     if (diceValue === this.selectedPolyhedral) {
                         this.rollAndAnimateExplodingDie(diceIndex + 1);
                     } else {
-                        // No explosion, show final results
+                        // No explosion, show final results with final doubles check
+                        this.updateDoublesCount();
                         this.showFinalResults();
                     }
                 }, 2000);
@@ -591,11 +595,15 @@ class DiceRoller {
             polyVisual.style.animation = '';
             polyVisual.classList.remove('rolling');
             
+            // Update doubles count after animation completes (important for exploded dice doubles)
+            this.updateDoublesCount();
+            
             // Check if this die also exploded
             if (roll === this.selectedPolyhedral) {
                 this.rollAndAnimateExplodingDie(diceIndex + 1);
             } else {
-                // No more explosions, show final results
+                // No more explosions, show final results with final doubles check
+                this.updateDoublesCount();
                 this.showFinalResults();
             }
         }, 2000);
