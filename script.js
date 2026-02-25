@@ -7,6 +7,7 @@ class DiceRoller {
         this.selectedPipDice = new Set();
         this.bindEvents();
         this.loadHistory();
+        this.initializeTheme();
     }
 
     bindEvents() {
@@ -31,6 +32,14 @@ class DiceRoller {
         // Clear history button
         document.getElementById('clear-history').addEventListener('click', () => this.clearHistory());
 
+        // Theme toggle button
+        const themeToggle = document.getElementById('theme-toggle');
+        if (themeToggle) {
+            themeToggle.addEventListener('click', () => this.toggleTheme());
+        } else {
+            console.error('Theme toggle button not found!');
+        }
+
         // Keyboard shortcuts
         document.addEventListener('keydown', (e) => {
             if (e.code === 'Space' || e.code === 'Enter') {
@@ -39,6 +48,11 @@ class DiceRoller {
             }
             if (e.code === 'Escape') {
                 this.clearAll();
+            }
+            // Toggle theme with 'T' key
+            if (e.code === 'KeyT' && !e.ctrlKey && !e.altKey && !e.metaKey) {
+                e.preventDefault();
+                this.toggleTheme();
             }
         });
     }
@@ -77,7 +91,6 @@ class DiceRoller {
         
         // Add visual feedback
         countElement.style.transform = 'scale(1.2)';
-        countElement.style.color = '#b59e90';
         setTimeout(() => {
             countElement.style.transform = 'scale(1)';
         }, 150);
@@ -768,6 +781,46 @@ class DiceRoller {
             this.rollHistory = [];
         }
     }
+
+    // Theme Management
+    initializeTheme() {
+        // Check for saved theme preference or default to 'dark'
+        const savedTheme = localStorage.getItem('diceRollerTheme') || 'dark';
+        this.setTheme(savedTheme);
+    }
+
+    toggleTheme() {
+        const currentTheme = document.body.classList.contains('light-mode') ? 'light' : 'dark';
+        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+        this.setTheme(newTheme);
+    }
+
+    setTheme(theme) {
+        const body = document.body;
+        const toggleButton = document.getElementById('theme-toggle');
+        
+        if (!toggleButton) {
+            console.error('Theme toggle button not found in setTheme!');
+            return;
+        }
+        
+        const toggleIcon = toggleButton.querySelector('.theme-toggle-icon');
+        const toggleText = toggleButton.querySelector('.theme-toggle-text');
+
+        if (theme === 'light') {
+            body.classList.add('light-mode');
+            if (toggleIcon) toggleIcon.textContent = '☀️';
+            if (toggleText) toggleText.textContent = 'Light Mode';
+        } else {
+            body.classList.remove('light-mode');
+            if (toggleIcon) toggleIcon.textContent = '🌙';
+            if (toggleText) toggleText.textContent = 'Dark Mode';
+        }
+
+        // Save theme preference
+        localStorage.setItem('diceRollerTheme', theme);
+        console.log('Theme set to:', theme);
+    }
 }
 
 // Advanced dice notation parser (for future features)
@@ -806,5 +859,5 @@ class DiceStatistics {
 // Initialize the dice roller when the page loads
 document.addEventListener('DOMContentLoaded', () => {
     new DiceRoller();
-    console.log('🎲 RPG Dice Roller initialized! Press Space/Enter to roll, Escape to clear.');
+    console.log('🎲 RPG Dice Roller initialized! Press Space/Enter to roll, Escape to clear, T to toggle theme.');
 });

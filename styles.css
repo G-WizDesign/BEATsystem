@@ -4,12 +4,82 @@
     box-sizing: border-box;
 }
 
+/* CSS Custom Properties for Color Themes */
+:root {
+    /* Dark Mode Colors (Current) */
+    --bg-primary: #181923;
+    --bg-secondary: #292d41;
+    --bg-tertiary: #38405d;
+    --bg-glass: rgba(255, 255, 255, 0.1);
+    --bg-glass-border: rgba(255, 255, 255, 0.2);
+    
+    --color-primary: #4c546d;
+    --color-secondary: #6f687a;
+    --color-tertiary: #8b7983;
+    --color-accent: #a58d89;
+    --color-highlight: #b59e90;
+    
+    --text-primary: #ffffff;
+    --text-secondary: rgba(255, 255, 255, 0.8);
+    --text-muted: rgba(255, 255, 255, 0.6);
+    --text-contrast: #000000;
+    --text-button: #ffffff;
+    --text-selected: #ffffff;
+    
+    --border-primary: transparent;
+    --border-active: #a58d89;
+    --shadow-primary: rgba(0, 0, 0, 0.3);
+    --shadow-accent: rgba(165, 141, 137, 0.3);
+    
+    --dice-bg: linear-gradient(135deg, #ffffff, #f0f0f0);
+    --dice-border: #333;
+    --dice-pip: #333;
+    
+    --selection-gold: #FFD700;
+    --selection-gold-shadow: rgba(255, 215, 0, 0.5);
+}
+
+/* Light Mode Colors */
+body.light-mode {
+    --bg-primary: #EAD3CB;
+    --bg-secondary: #BDC7C9;
+    --bg-tertiary: #ffffff;
+    --bg-glass: rgba(43, 79, 96, 0.1);
+    --bg-glass-border: rgba(43, 79, 96, 0.2);
+    
+    --color-primary: #2B4F60;
+    --color-secondary: #845460;
+    --color-tertiary: #BDC7C9;
+    --color-accent: #845460;
+    --color-highlight: #2B4F60;
+    
+    --text-primary: #2B4F60;
+    --text-secondary: rgba(43, 79, 96, 0.8);
+    --text-muted: rgba(43, 79, 96, 0.6);
+    --text-contrast: #ffffff;
+    --text-button: #ffffff;
+    --text-selected: #ffffff;
+    
+    --border-primary: transparent;
+    --border-active: #845460;
+    --shadow-primary: rgba(43, 79, 96, 0.2);
+    --shadow-accent: rgba(132, 84, 96, 0.3);
+    
+    --dice-bg: linear-gradient(135deg, #ffffff, #f8f8f8);
+    --dice-border: #2B4F60;
+    --dice-pip: #2B4F60;
+    
+    --selection-gold: #845460;
+    --selection-gold-shadow: rgba(132, 84, 96, 0.5);
+}
+
 body {
     font-family: 'lexia', serif;
-    background: linear-gradient(135deg, #181923, #292d41, #38405d);
-    color: #ffffff;
+    background: linear-gradient(135deg, var(--bg-primary), var(--bg-secondary), var(--bg-tertiary));
+    color: var(--text-primary);
     min-height: 100vh;
     overflow-x: hidden;
+    transition: all 0.3s ease;
 }
 
 .container {
@@ -27,14 +97,14 @@ header {
     font-family: "p22-morris-golden", serif;
     font-size: 3rem;
     font-weight: 400;
-    background: linear-gradient(45deg, #4c546d, #6f687a, #8b7983, #a58d89);
+    background: linear-gradient(45deg, var(--color-primary), var(--color-secondary), var(--color-tertiary), var(--color-accent));
     background-size: 400% 400%;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
     animation: gradient 3s ease-in-out infinite;
     margin-bottom: 10px;
-    text-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+    text-shadow: 0 0 20px var(--shadow-accent);
 }
 
 .subtitle {
@@ -54,12 +124,12 @@ header {
 
 /* Polyhedral Dice Selector */
 .polyhedral-selector {
-    background: rgba(255, 255, 255, 0.1);
+    background: var(--bg-glass);
     border-radius: 15px;
     padding: 25px;
     margin-bottom: 25px;
     backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    border: 1px solid var(--bg-glass-border);
 }
 
 .polyhedral-selector h2 {
@@ -67,7 +137,7 @@ header {
     text-align: center;
     margin-bottom: 20px;
     font-size: 1.5rem;
-    color: #b59e90;
+    color: var(--color-highlight);
 }
 
 .poly-grid {
@@ -79,12 +149,12 @@ header {
 }
 
 .poly-option {
-    background: linear-gradient(145deg, #2a2d3a, #1e212e);
+    background: linear-gradient(145deg, var(--color-primary), var(--bg-primary));
     border-radius: 12px;
     padding: 15px;
     text-align: center;
     transition: all 0.3s ease;
-    border: 2px solid transparent;
+    border: 2px solid var(--border-primary);
     cursor: pointer;
     width: 120px;
     height: 120px;
@@ -96,14 +166,14 @@ header {
 
 .poly-option:hover {
     transform: translateY(-5px);
-    border-color: #a58d89;
-    box-shadow: 0 10px 20px rgba(165, 141, 137, 0.3);
+    border-color: var(--border-active);
+    box-shadow: 0 10px 20px var(--shadow-accent);
 }
 
 .poly-option.selected {
-    border-color: #a58d89;
-    background: linear-gradient(145deg, #6f687a, #4c546d);
-    box-shadow: 0 0 20px rgba(165, 141, 137, 0.5);
+    border-color: var(--border-active);
+    background: linear-gradient(145deg, var(--color-secondary), var(--color-primary));
+    box-shadow: 0 0 20px var(--shadow-accent);
 }
 
 .poly-shape {
@@ -119,19 +189,19 @@ header {
     height: 0;
     border-left: 30px solid transparent;
     border-right: 30px solid transparent;
-    border-bottom: 52px solid #8b7983;
+    border-bottom: 52px solid var(--color-tertiary);
     background: none !important;
 }
 
 .d6-shape {
-    background: linear-gradient(135deg, #8b7983, #6f687a);
+    background: linear-gradient(135deg, var(--color-tertiary), var(--color-secondary));
     border-radius: 8px;
 }
 
 .d8-shape {
     width: 35px;
     height: 50px;
-    background: linear-gradient(135deg, #8b7983, #6f687a);
+    background: linear-gradient(135deg, var(--color-tertiary), var(--color-secondary));
     clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
     margin: 10px auto;
 }
@@ -139,7 +209,7 @@ header {
 .d10-shape {
     width: 70px;
     height: 45px;
-    background: linear-gradient(135deg, #8b7983, #6f687a);
+    background: linear-gradient(135deg, var(--color-tertiary), var(--color-secondary));
     clip-path: polygon(50% 10%, 85% 60%, 50% 90%, 15% 60%);
     margin: 5px auto 5px;
 }
@@ -147,7 +217,7 @@ header {
 .d12-shape {
     width: 50px;
     height: 50px;
-    background: linear-gradient(135deg, #8b7983, #6f687a);
+    background: linear-gradient(135deg, var(--color-tertiary), var(--color-secondary));
     clip-path: polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%);
     margin: 5px auto 5px;
 }
@@ -155,7 +225,7 @@ header {
 .d20-shape {
     width: 60px;
     height: 50px;
-    background: linear-gradient(135deg, #8b7983, #6f687a);
+    background: linear-gradient(135deg, var(--color-tertiary), var(--color-secondary));
     clip-path: polygon(50% 0%, 87% 25%, 87% 75%, 50% 100%, 13% 75%, 13% 25%);
     margin: 5px auto 5px;
 }
@@ -163,33 +233,33 @@ header {
 .poly-label {
     font-size: 1.2rem;
     font-weight: bold;
-    color: #ffffff;
+    color: var(--text-selected);
 }
 
 .selected-poly {
     text-align: center;
     padding: 15px;
-    background: rgba(181, 158, 144, 0.2);
+    background: var(--bg-glass);
     border-radius: 10px;
-    border: 1px solid #b59e90;
+    border: 1px solid var(--color-highlight);
     font-size: 1.1rem;
     font-weight: bold;
-    color: #b59e90;
+    color: var(--color-highlight);
 }
 
 /* Pip Dice Section */
 .pip-dice-section {
-    background: rgba(255, 255, 255, 0.1);
+    background: var(--bg-glass);
     border-radius: 15px;
     padding: 20px;
     margin-bottom: 20px;
     backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    border: 1px solid var(--bg-glass-border);
 }
 
 .pip-dice-section h2 {
     font-family: 'museo', sans-serif;
-    color: #b59e90;
+    color: var(--color-highlight);
     margin-bottom: 15px;
     text-align: center;
 }
@@ -203,8 +273,8 @@ header {
 
 .btn-decrease,
 .btn-increase {
-    background: #4c546d;
-    color: white;
+    background: var(--color-primary);
+    color: var(--text-button);
     border: none;
     border-radius: 50%;
     width: 35px;
@@ -219,13 +289,14 @@ header {
 }
 
 .btn-increase {
-    background: #8b7983;
+    background: var(--color-tertiary);
+    color: var(--text-contrast);
 }
 
 .btn-decrease:hover,
 .btn-increase:hover {
     transform: scale(1.1);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 4px 8px var(--shadow-primary);
 }
 
 .pip-count {
@@ -233,22 +304,22 @@ header {
     font-weight: bold;
     min-width: 40px;
     text-align: center;
-    color: #b59e90;
+    color: var(--color-highlight);
 }
 
 /* Custom Dice Section */
 .custom-dice-section {
-    background: rgba(255, 255, 255, 0.1);
+    background: var(--bg-glass);
     border-radius: 15px;
     padding: 20px;
     margin-bottom: 20px;
     backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    border: 1px solid var(--bg-glass-border);
 }
 
 .custom-dice-section h2 {
     font-family: 'museo', sans-serif;
-    color: #b59e90;
+    color: var(--color-highlight);
     margin-bottom: 15px;
     text-align: center;
 }
@@ -263,15 +334,15 @@ header {
 
 .custom-dice-input label {
     font-weight: bold;
-    color: #ffffff;
+    color: var(--text-primary);
 }
 
 .custom-dice-input input {
-    background: rgba(255, 255, 255, 0.1);
-    border: 2px solid rgba(181, 158, 144, 0.5);
+    background: var(--bg-glass);
+    border: 2px solid var(--bg-glass-border);
     border-radius: 8px;
     padding: 8px 12px;
-    color: #ffffff;
+    color: var(--text-primary);
     font-family: 'lexia', serif;
     font-size: 1rem;
     width: 100px;
@@ -280,8 +351,8 @@ header {
 
 .custom-dice-input input:focus {
     outline: none;
-    border-color: #b59e90;
-    box-shadow: 0 0 10px rgba(181, 158, 144, 0.5);
+    border-color: var(--color-highlight);
+    box-shadow: 0 0 10px var(--shadow-accent);
 }
 
 /* Roll Section */
@@ -292,8 +363,8 @@ header {
 
 .roll-button,
 .clear-button {
-    background: linear-gradient(45deg, #6f687a, #a58d89);
-    color: white;
+    background: linear-gradient(45deg, var(--color-secondary), var(--color-accent));
+    color: var(--text-button);
     border: none;
     border-radius: 15px;
     padding: 15px 30px;
@@ -307,7 +378,8 @@ header {
 }
 
 .clear-button {
-    background: linear-gradient(45deg, #4c546d, #6f687a);
+    background: linear-gradient(45deg, var(--color-primary), var(--color-secondary));
+    color: var(--text-button);
     padding: 10px 20px;
     font-size: 1rem;
 }
@@ -315,7 +387,7 @@ header {
 .roll-button:hover,
 .clear-button:hover {
     transform: scale(1.05);
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 10px 20px var(--shadow-primary);
 }
 
 .roll-button:active,
@@ -325,18 +397,18 @@ header {
 
 /* Results Section */
 .results-section {
-    background: rgba(255, 255, 255, 0.1);
+    background: var(--bg-glass);
     border-radius: 15px;
     padding: 25px;
     margin-bottom: 25px;
     backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    border: 1px solid var(--bg-glass-border);
     min-height: 200px;
 }
 
 .current-roll h2 {
     font-family: 'museo', sans-serif;
-    color: #b59e90;
+    color: var(--color-highlight);
     text-align: center;
     margin-bottom: 20px;
 }
@@ -348,7 +420,7 @@ header {
 
 .poly-result h3, .pip-result h3 {
     font-family: 'museo', sans-serif;
-    color: #ffffff;
+    color: var(--text-primary);
     margin-bottom: 10px;
     font-size: 1.2rem;
 }
@@ -374,8 +446,8 @@ header {
     justify-content: center;
     font-size: 2rem;
     font-weight: bold;
-    color: #ffffff;
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+    color: var(--text-primary);
+    text-shadow: 2px 2px 4px var(--shadow-primary);
     position: relative;
 }
 
@@ -385,41 +457,41 @@ header {
     height: 0;
     border-left: 30px solid transparent;
     border-right: 30px solid transparent;
-    border-bottom: 52px solid #8b7983;
+    border-bottom: 52px solid var(--color-tertiary);
     background: none !important;
     position: relative;
 }
 
 .result-d6 {
-    background: linear-gradient(135deg, #8b7983, #6f687a);
+    background: linear-gradient(135deg, var(--color-tertiary), var(--color-secondary));
     border-radius: 8px;
 }
 
 .result-d8 {
     width: 45px;
     height: 60px;
-    background: linear-gradient(135deg, #8b7983, #6f687a);
+    background: linear-gradient(135deg, var(--color-tertiary), var(--color-secondary));
     clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
 }
 
 .result-d10 {
     width: 80px;
     height: 55px;
-    background: linear-gradient(135deg, #8b7983, #6f687a);
+    background: linear-gradient(135deg, var(--color-tertiary), var(--color-secondary));
     clip-path: polygon(50% 10%, 85% 60%, 50% 90%, 15% 60%);
 }
 
 .result-d12 {
     width: 50px;
     height: 50px;
-    background: linear-gradient(135deg, #8b7983, #6f687a);
+    background: linear-gradient(135deg, var(--color-tertiary), var(--color-secondary));
     clip-path: polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%);
 }
 
 .result-d20 {
     width: 60px;
     height: 50px;
-    background: linear-gradient(135deg, #8b7983, #6f687a);
+    background: linear-gradient(135deg, var(--color-tertiary), var(--color-secondary));
     clip-path: polygon(50% 0%, 87% 25%, 87% 75%, 50% 100%, 13% 75%, 13% 25%);
 }
 
@@ -428,10 +500,10 @@ header {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    color: #ffffff;
+    color: var(--text-selected);
     font-size: 1.8rem;
     font-weight: bold;
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+    text-shadow: 2px 2px 4px var(--shadow-primary);
 }
 
 /* Pip Dice Display */
@@ -447,8 +519,8 @@ header {
 .pip-die {
     width: 60px;
     height: 60px;
-    background: linear-gradient(135deg, #ffffff, #f0f0f0);
-    border: 2px solid #333;
+    background: var(--dice-bg);
+    border: 2px solid var(--dice-border);
     border-radius: 8px;
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -508,7 +580,7 @@ header {
 .pip {
     width: 10px;
     height: 10px;
-    background: #333;
+    background: var(--dice-pip);
     border-radius: 50%;
     margin: auto;
     visibility: hidden;
@@ -555,8 +627,8 @@ header {
     left: 50%;
     transform: translate(-50%, -50%);
     font-size: 2rem;
-    color: #4c546d;
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+    color: var(--color-primary);
+    text-shadow: 2px 2px 4px var(--shadow-primary);
     z-index: 10;
     pointer-events: none;
 }
@@ -580,17 +652,17 @@ header {
 
 .selectable-die:hover {
     transform: scale(1.1);
-    box-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
+    box-shadow: 0 0 15px var(--selection-gold-shadow);
     animation: none;
 }
 
 @keyframes selectablePulse {
     0%, 100% {
-        box-shadow: 0 0 8px rgba(181, 158, 144, 0.4);
+        box-shadow: 0 0 8px var(--shadow-accent);
         transform: scale(1);
     }
     50% {
-        box-shadow: 0 0 20px rgba(181, 158, 144, 0.8);
+        box-shadow: 0 0 20px var(--shadow-accent);
         transform: scale(1.02);
     }
 }
@@ -631,8 +703,8 @@ header {
 /* Selected dice styling */
 .selected-die {
     opacity: 0.6;
-    box-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
-    border-color: #FFD700;
+    box-shadow: 0 0 20px var(--selection-gold-shadow);
+    border-color: var(--selection-gold);
     position: relative;
     animation: none !important;
 }
@@ -652,8 +724,8 @@ header {
     font-size: 2.5rem;
     font-weight: bold;
     text-align: center;
-    color: #b59e90;
-    text-shadow: 0 0 20px rgba(181, 158, 144, 0.5);
+    color: var(--color-highlight);
+    text-shadow: 0 0 20px var(--shadow-accent);
     animation: pulse 0.5s ease-in-out;
     margin-top: 20px;
 }
@@ -662,7 +734,7 @@ header {
     font-size: 1.2rem;
     font-weight: bold;
     text-align: center;
-    color: #a58d89;
+    color: var(--color-accent);
     margin-top: 10px;
     font-style: italic;
 }
@@ -671,7 +743,7 @@ header {
     font-size: 1.2rem;
     font-weight: bold;
     text-align: center;
-    color: #ffffff;
+    color: var(--text-primary);
     margin-top: 10px;
     font-style: italic;
 }
@@ -691,23 +763,23 @@ header {
 
 /* History Section */
 .history-section {
-    background: rgba(255, 255, 255, 0.1);
+    background: var(--bg-glass);
     border-radius: 15px;
     padding: 25px;
     backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    border: 1px solid var(--bg-glass-border);
 }
 
 .history-section h2 {
     font-family: 'museo', sans-serif;
-    color: #b59e90;
+    color: var(--color-highlight);
     text-align: center;
     margin-bottom: 20px;
 }
 
 .clear-history-btn {
-    background: #4c546d;
-    color: white;
+    background: var(--color-primary);
+    color: var(--text-button);
     border: none;
     border-radius: 8px;
     padding: 8px 15px;
@@ -719,7 +791,7 @@ header {
 }
 
 .clear-history-btn:hover {
-    background: #6f687a;
+    background: var(--color-secondary);
     transform: translateY(-1px);
 }
 
@@ -729,11 +801,11 @@ header {
 }
 
 .history-item {
-    background: rgba(255, 255, 255, 0.05);
+    background: var(--bg-glass);
     border-radius: 8px;
     padding: 12px;
     margin-bottom: 8px;
-    border-left: 3px solid #a58d89;
+    border-left: 3px solid var(--color-accent);
     font-size: 0.9rem;
     animation: slideIn 0.3s ease-out;
 }
@@ -750,49 +822,165 @@ header {
 }
 
 .history-formula {
-    color: #ffffff;
+    color: var(--text-primary);
     font-weight: bold;
 }
 
 .history-result {
-    color: #b59e90;
+    color: var(--color-highlight);
     font-weight: bold;
     font-size: 1.1rem;
 }
 
 .history-initial-total {
-    color: rgba(181, 158, 144, 0.7);
+    color: var(--text-secondary);
     font-size: 0.9rem;
     font-style: italic;
 }
 
 .history-pip-spent {
-    color: #8b7983;
+    color: var(--color-tertiary);
     font-size: 0.9rem;
     margin-top: 2px;
 }
 
 .history-doubles {
-    color: #a58d89;
+    color: var(--color-accent);
     font-size: 0.9rem;
     font-weight: bold;
     margin-top: 2px;
 }
 
 .history-ones {
-    color: #a58d89;
+    color: var(--color-accent);
     font-size: 0.9rem;
     margin-top: 2px;
 }
 
 .history-timestamp {
-    color: rgba(255, 255, 255, 0.6);
+    color: var(--text-muted);
     font-size: 0.8rem;
     float: right;
 }
 
+/* Theme Toggle Button */
+.theme-toggle {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: var(--bg-glass);
+    border: 2px solid var(--border-active);
+    border-radius: 50px;
+    padding: 8px 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'lexia', serif;
+    color: var(--text-primary);
+    font-size: 0.9rem;
+    font-weight: bold;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+    z-index: 1000;
+    user-select: none;
+}
+
+.theme-toggle:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px var(--shadow-accent);
+}
+
+.theme-toggle:active {
+    transform: scale(0.98);
+}
+
+.theme-toggle-icon {
+    font-size: 1.2rem;
+    transition: transform 0.3s ease;
+}
+
+body.light-mode .theme-toggle-icon {
+    transform: rotate(180deg);
+}
+
+/* Light Mode Text Contrast Fixes */
+body.light-mode .poly-result-value {
+    color: #ffffff;
+    text-shadow: 2px 2px 4px rgba(43, 79, 96, 0.8);
+}
+
+body.light-mode .poly-label {
+    color: #ffffff;
+    text-shadow: 1px 1px 2px rgba(43, 79, 96, 0.8);
+}
+
+body.light-mode .ones-display {
+    color: #2B4F60;
+    font-weight: 900;
+}
+
+body.light-mode .pip-count {
+    color: #2B4F60;
+    font-weight: 900;
+}
+
+body.light-mode .poly-result-shape {
+    color: #ffffff;
+    text-shadow: 2px 2px 4px rgba(43, 79, 96, 0.8);
+}
+
+/* Light Mode Button Text Enhancement */
+body.light-mode .roll-button,
+body.light-mode .clear-button {
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+body.light-mode .btn-decrease,
+body.light-mode .btn-increase {
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+/* Light Mode History Text Fixes */
+body.light-mode .history-pip-spent {
+    color: #2B4F60;
+    font-weight: bold;
+}
+
+/* Light Mode Theme Toggle Button */
+body.light-mode .theme-toggle {
+    color: #2B4F60;
+    border-color: #2B4F60;
+}
+
+.theme-toggle-text {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Smooth theme transitions */
+* {
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
+    .theme-toggle {
+        top: 10px;
+        right: 10px;
+        padding: 6px 12px;
+        font-size: 0.8rem;
+    }
+    
+    .theme-toggle-icon {
+        font-size: 1rem;
+    }
+    
+    .theme-toggle-text {
+        display: none; /* Hide text on mobile, show only icon */
+    }
+
     .container {
         padding: 15px;
     }
@@ -828,15 +1016,15 @@ header {
 }
 
 ::-webkit-scrollbar-track {
-    background: rgba(255, 255, 255, 0.1);
+    background: var(--bg-glass);
     border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb {
-    background: #8b7983;
+    background: var(--color-tertiary);
     border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    background: #6f687a;
+    background: var(--color-secondary);
 }
