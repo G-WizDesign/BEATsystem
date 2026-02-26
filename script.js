@@ -45,6 +45,10 @@ class DiceRoller {
 
         // Keyboard shortcuts
         document.addEventListener('keydown', (e) => {
+            if (this.isTypingTarget(e.target)) {
+                return;
+            }
+
             if (e.code === 'Space' || e.code === 'Enter') {
                 e.preventDefault();
                 this.rollDice();
@@ -58,6 +62,15 @@ class DiceRoller {
                 this.toggleTheme();
             }
         });
+    }
+
+    isTypingTarget(target) {
+        if (!target) {
+            return false;
+        }
+
+        const tagName = target.tagName ? target.tagName.toLowerCase() : '';
+        return target.isContentEditable || tagName === 'input' || tagName === 'textarea' || tagName === 'select';
     }
 
     selectPolyhedral(sides, element) {
