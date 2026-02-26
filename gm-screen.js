@@ -6,6 +6,7 @@ class GmScreen {
             'high-contrast': ['#FFB000', '#648FFF', '#DC267F', '#785EF0', '#FE6100', '#00E5FF', '#7CFC00', '#FFFFFF', '#FFD166', '#7FDBFF', '#FF4D6D', '#B8F200', '#FF9F1C', '#9D4EDD', '#00F5D4', '#F15BB5', '#00BBF9', '#FEE440', '#F94144', '#43AA8B']
         };
         this.nextColorIndex = 0;
+        this.recycledColorIndices = [];
 
         this.characters = [];
         this.activeCharacterId = null;
@@ -18,6 +19,8 @@ class GmScreen {
         this.pendingFocusCharacterId = null;
         this.pendingFocusAction = null;
         this.pendingCharacterActionId = null;
+        this.pendingMinionGroupId = null;
+        this.pendingMinionAnchorElement = null;
         const queryParams = new URLSearchParams(window.location.search);
         this.embeddedMode = queryParams.get('embedded') === '1';
         this.panelKey = queryParams.get('panelKey') || 'main';
@@ -26,6 +29,24 @@ class GmScreen {
         this.activeTrackId = null;
         this.trackStorageKey = `beatInitiativeTracks:${this.panelKey}`;
         this.panelStackStorageKey = 'beatInitiativePanels';
+        this.minionStorageKey = 'beatMinionGroups';
+        this.minionSizeConfig = {
+            handful: { label: 'Handful', die: 'd4', max: 4, columns: 2 },
+            'small-group': { label: 'Small Group', die: 'd6', max: 6, columns: 3 },
+            mob: { label: 'Mob', die: 'd8', max: 8, columns: 4 },
+            unit: { label: 'Unit', die: 'd10', max: 10, columns: 5 },
+            'large-unit': { label: 'Large Unit', die: 'd12', max: 12, columns: 4 },
+            horde: { label: 'Horde', die: 'd20', max: 20, columns: 5 }
+        };
+        this.minionDieThresholds = [
+            { max: 20, die: 'd20' },
+            { max: 12, die: 'd12' },
+            { max: 10, die: 'd10' },
+            { max: 8, die: 'd8' },
+            { max: 6, die: 'd6' },
+            { max: 4, die: 'd4' }
+        ];
+        this.minionGroups = [];
 
         this.layout = {
             labelX: 16,
@@ -44,6 +65,7 @@ class GmScreen {
         } else {
             this.applyManagerLayout();
             this.initializeEmbeddedPanelStack();
+            this.initializeMinionGroups();
         }
     }
 
@@ -65,6 +87,7 @@ class GmScreen {
         const addInitiativeTrackButton = document.getElementById('add-initiative-track');
         const clearInitiativeTrackButton = document.getElementById('clear-initiative-track');
         const deleteInitiativeTrackButton = document.getElementById('delete-initiative-track');
+        const minionGroupForm = document.getElementById('minion-group-form');
         const closeInterjectionModalButton = document.getElementById('close-interjection-modal');
         const interjectionModal = document.getElementById('interjection-modal');
         const focusChangeModal = document.getElementById('focus-change-modal');
@@ -74,6 +97,8 @@ class GmScreen {
         const confirmRemoveCharacterButton = document.getElementById('confirm-remove-character');
         const confirmDefeatCharacterButton = document.getElementById('confirm-defeat-character');
         const cancelCharacterActionButton = document.getElementById('cancel-character-action');
+        const minionInitiativeModal = document.getElementById('minion-initiative-modal');
+        const closeMinionInitiativeModalButton = document.getElementById('close-minion-initiative-modal');
 
         if (characterForm) {
             characterForm.addEventListener('submit', (e) => {
@@ -126,6 +151,13 @@ class GmScreen {
             deleteInitiativeTrackButton.addEventListener('click', () => this.deleteCurrentInitiativeTrack());
         }
 
+        if (minionGroupForm) {
+            minionGroupForm.addEventListener('submit', (event) => {
+                event.preventDefault();
+                this.handleAddMinionGroup();
+            });
+        }
+
         if (closeInterjectionModalButton) {
             closeInterjectionModalButton.addEventListener('click', () => this.closeInterjectionModal());
         }
@@ -173,6 +205,28 @@ class GmScreen {
                 }
             });
         }
+
+        if (closeMinionInitiativeModalButton) {
+            closeMinionInitiativeModalButton.addEventListener('click', () => this.closeMinionInitiativeModal());
+        }
+
+        if (minionInitiativeModal) {
+            minionInitiativeModal.addEventListener('click', (event) => {
+                const panel = minionInitiativeModal.querySelector('.modal-panel');
+                if (panel && !panel.contains(event.target)) {
+                    this.closeMinionInitiativeModal();
+                }
+            });
+        }
+
+        window.addEventListener('message', (event) => {
+            const payload = event.data;
+            if (!payload || payload.type !== 'beat-theme-sync' || typeof payload.theme !== 'string') {
+                return;
+            }
+
+            this.setTheme(payload.theme, false);
+        });
 
         document.addEventListener('keydown', (e) => {
             if (this.isTypingTarget(e.target)) {
@@ -361,6 +415,16 @@ class GmScreen {
             iframe.src = `gm-screen.html?embedded=1&panelKey=${encodeURIComponent(panel.id)}&panelName=${encodeURIComponent(panel.name)}`;
             iframe.title = panel.name;
             iframe.loading = 'lazy';
+            iframe.addEventListener('load', () => {
+                try {
+                    iframe.contentWindow?.postMessage({
+                        type: 'beat-theme-sync',
+                        theme: this.getCurrentTheme()
+                    }, '*');
+                } catch (error) {
+                    // Best effort sync only.
+                }
+            });
 
             wrapper.appendChild(header);
             wrapper.appendChild(iframe);
@@ -372,9 +436,12 @@ class GmScreen {
         const loadedTracks = this.loadTracksFromStorage();
         if (loadedTracks.length) {
             this.initiativeTracks = loadedTracks;
-            this.activeTrackId = loadedTracks[0].id;
-            this.applyTrackState(this.initiativeTracks[0]);
+            const savedActiveTrackId = this.loadActiveTrackSelection();
+            const preferredTrack = loadedTracks.find(track => track.id === savedActiveTrackId) || loadedTracks[0];
+            this.activeTrackId = preferredTrack.id;
+            this.applyTrackState(preferredTrack);
             this.refreshTrackSelector();
+            this.saveActiveTrackSelection();
             this.setStatus(`Loaded ${loadedTracks.length} saved initiative track${loadedTracks.length === 1 ? '' : 's'}.`);
             return;
         }
@@ -385,6 +452,32 @@ class GmScreen {
         this.applyTrackState(initialTrack);
         this.refreshTrackSelector();
         this.saveTracksToStorage();
+        this.saveActiveTrackSelection();
+    }
+
+    getActiveTrackStorageKey(panelId = null) {
+        const resolvedPanelId = panelId || this.panelKey;
+        return `beatInitiativeActiveTrack:${resolvedPanelId}`;
+    }
+
+    saveActiveTrackSelection() {
+        if (!this.activeTrackId) {
+            return;
+        }
+
+        try {
+            localStorage.setItem(this.getActiveTrackStorageKey(), this.activeTrackId);
+        } catch (error) {
+            // Ignore storage write failures for active selection.
+        }
+    }
+
+    loadActiveTrackSelection(panelId = null) {
+        try {
+            return localStorage.getItem(this.getActiveTrackStorageKey(panelId)) || null;
+        } catch (error) {
+            return null;
+        }
     }
 
     createEmptyTrack(name) {
@@ -393,6 +486,7 @@ class GmScreen {
             name,
             createdAt: Date.now(),
             nextColorIndex: 0,
+            recycledColorIndices: [],
             characters: [],
             activeCharacterId: null,
             currentRound: 1,
@@ -412,6 +506,7 @@ class GmScreen {
             createdAt: existingTrack?.createdAt || Date.now(),
             updatedAt: Date.now(),
             nextColorIndex: this.nextColorIndex,
+            recycledColorIndices: [...this.recycledColorIndices],
             characters: this.characters.map(character => ({ ...character })),
             activeCharacterId: this.activeCharacterId,
             currentRound: this.currentRound,
@@ -428,6 +523,9 @@ class GmScreen {
         }
 
         this.nextColorIndex = Number.isFinite(track.nextColorIndex) ? track.nextColorIndex : 0;
+        this.recycledColorIndices = Array.isArray(track.recycledColorIndices)
+            ? track.recycledColorIndices.filter(index => Number.isFinite(index))
+            : [];
         this.characters = Array.isArray(track.characters) ? track.characters.map(character => ({ ...character })) : [];
         this.activeCharacterId = track.activeCharacterId || null;
         this.currentRound = Number.isFinite(track.currentRound) && track.currentRound > 0 ? track.currentRound : 1;
@@ -450,6 +548,32 @@ class GmScreen {
         this.updateSelectIndicators();
         this.updateCharacterColorPreview();
         this.renderTracker();
+    }
+
+    getNextPaletteIndexFromState() {
+        if (Array.isArray(this.recycledColorIndices) && this.recycledColorIndices.length) {
+            const recycled = this.recycledColorIndices.shift();
+            if (Number.isFinite(recycled)) {
+                return recycled;
+            }
+        }
+
+        const next = Number.isFinite(this.nextColorIndex) ? this.nextColorIndex : 0;
+        this.nextColorIndex = next + 1;
+        return next;
+    }
+
+    recyclePaletteIndexToState(paletteIndex) {
+        if (!Number.isFinite(paletteIndex)) {
+            return;
+        }
+
+        if (!Array.isArray(this.recycledColorIndices)) {
+            this.recycledColorIndices = [];
+        }
+
+        this.recycledColorIndices = this.recycledColorIndices.filter(index => index !== paletteIndex);
+        this.recycledColorIndices.unshift(paletteIndex);
     }
 
     refreshTrackSelector() {
@@ -510,6 +634,7 @@ class GmScreen {
         this.applyTrackState(newTrack);
         this.refreshTrackSelector();
         this.saveTracksToStorage();
+        this.saveActiveTrackSelection();
         this.setStatus(`Created ${newTrack.name}.`);
     }
 
@@ -524,6 +649,7 @@ class GmScreen {
         this.activeTrackId = trackId;
         this.applyTrackState(nextTrack);
         this.refreshTrackSelector();
+        this.saveActiveTrackSelection();
         this.setStatus(`Switched to ${nextTrack.name}.`);
     }
 
@@ -544,6 +670,7 @@ class GmScreen {
         this.applyTrackState(clearedTrack);
         this.refreshTrackSelector();
         this.saveTracksToStorage();
+        this.saveActiveTrackSelection();
         this.setStatus(`${clearedTrack.name} has been cleared.`);
     }
 
@@ -579,6 +706,7 @@ class GmScreen {
         this.applyTrackState(nextTrack);
         this.refreshTrackSelector();
         this.saveTracksToStorage();
+        this.saveActiveTrackSelection();
         this.setStatus(`Deleted ${currentTrack.name}. Switched to ${nextTrack.name}.`);
     }
 
@@ -608,6 +736,629 @@ class GmScreen {
         }
     }
 
+    initializeMinionGroups() {
+        this.minionGroups = this.loadMinionGroupsFromStorage();
+        this.renderMinionGroups();
+    }
+
+    loadMinionGroupsFromStorage() {
+        try {
+            const raw = localStorage.getItem(this.minionStorageKey);
+            if (!raw) {
+                return [];
+            }
+
+            const parsed = JSON.parse(raw);
+            if (!Array.isArray(parsed)) {
+                return [];
+            }
+
+            return parsed.filter(group => group && group.id && group.sizeKey);
+        } catch (error) {
+            return [];
+        }
+    }
+
+    saveMinionGroupsToStorage() {
+        try {
+            localStorage.setItem(this.minionStorageKey, JSON.stringify(this.minionGroups));
+        } catch (error) {
+            this.setStatus('Could not save minion groups.');
+        }
+    }
+
+    handleAddMinionGroup() {
+        const nameInput = document.getElementById('minion-group-name');
+        const sizeSelect = document.getElementById('minion-group-size');
+        if (!nameInput || !sizeSelect) {
+            return;
+        }
+
+        const name = nameInput.value.trim();
+        const sizeKey = sizeSelect.value;
+        const config = this.minionSizeConfig[sizeKey];
+
+        if (!name) {
+            this.setStatus('Enter a minion group name first.');
+            return;
+        }
+
+        if (!config) {
+            this.setStatus('Choose a valid minion group size.');
+            return;
+        }
+
+        const group = {
+            id: `minion-${Date.now()}-${Math.floor(Math.random() * 10000)}`,
+            name,
+            sizeKey,
+            traits: '',
+            healthDamage: 0,
+            cohesionDamage: 0
+        };
+
+        this.minionGroups.push(group);
+        nameInput.value = '';
+        this.renderMinionGroups();
+        this.saveMinionGroupsToStorage();
+        this.setStatus(`Added minion group ${group.name}.`);
+    }
+
+    removeMinionGroup(groupId) {
+        const group = this.minionGroups.find(item => item.id === groupId);
+        if (!group) {
+            return;
+        }
+
+        this.minionGroups = this.minionGroups.filter(item => item.id !== groupId);
+        this.renderMinionGroups();
+        this.saveMinionGroupsToStorage();
+        this.setStatus(`Removed minion group ${group.name}.`);
+    }
+
+    getUniqueCharacterName(existingCharacters, baseName) {
+        const normalizedBase = baseName.trim();
+        if (!normalizedBase) {
+            return 'Minion Group';
+        }
+
+        const lowerNames = new Set((existingCharacters || []).map(character => character.name.toLowerCase()));
+        if (!lowerNames.has(normalizedBase.toLowerCase())) {
+            return normalizedBase;
+        }
+
+        let suffix = 2;
+        while (lowerNames.has(`${normalizedBase} ${suffix}`.toLowerCase())) {
+            suffix += 1;
+        }
+
+        return `${normalizedBase} ${suffix}`;
+    }
+
+    panelAlreadyHasMinionGroup(panelId, group) {
+        if (!panelId || !group) {
+            return false;
+        }
+
+        const storageKey = `beatInitiativeTracks:${panelId}`;
+        let tracks = [];
+        try {
+            const raw = localStorage.getItem(storageKey);
+            const parsed = raw ? JSON.parse(raw) : [];
+            tracks = Array.isArray(parsed) ? parsed : [];
+        } catch (error) {
+            tracks = [];
+        }
+
+        const normalizedGroupName = group.name.trim().toLowerCase();
+        return tracks.some((track) => {
+            const characters = Array.isArray(track?.characters) ? track.characters : [];
+            return characters.some((character) => {
+                if (!character || typeof character !== 'object') {
+                    return false;
+                }
+
+                if (character.sourceMinionGroupId) {
+                    return character.sourceMinionGroupId === group.id;
+                }
+
+                if (typeof character.sourceMinionGroupName === 'string'
+                    && character.sourceMinionGroupName.trim().toLowerCase() === normalizedGroupName) {
+                    return true;
+                }
+
+                return typeof character.name === 'string'
+                    && character.name.trim().toLowerCase() === normalizedGroupName;
+            });
+        });
+    }
+
+    positionMinionInitiativeModal(anchorElement) {
+        const modal = document.getElementById('minion-initiative-modal');
+        if (!modal) {
+            return;
+        }
+
+        const panel = modal.querySelector('.modal-panel');
+        if (!panel) {
+            return;
+        }
+
+        const fallbackTop = Math.max(12, (window.innerHeight - panel.offsetHeight) / 2);
+        if (!anchorElement) {
+            panel.style.left = `${Math.max(12, (window.innerWidth - panel.offsetWidth) / 2)}px`;
+            panel.style.top = `${fallbackTop}px`;
+            panel.style.visibility = 'visible';
+            return;
+        }
+
+        const anchorCard = anchorElement.closest('.minion-group-card') || anchorElement;
+        const anchorRect = anchorCard.getBoundingClientRect();
+
+        panel.style.left = '12px';
+        panel.style.top = `${fallbackTop}px`;
+        panel.style.visibility = 'hidden';
+
+        requestAnimationFrame(() => {
+            const panelRect = panel.getBoundingClientRect();
+            const viewportWidth = window.innerWidth;
+            const viewportHeight = window.innerHeight;
+            const margin = 12;
+
+            let left = anchorRect.left + ((anchorRect.width - panelRect.width) / 2);
+            left = Math.max(margin, Math.min(left, viewportWidth - panelRect.width - margin));
+
+            let top = anchorRect.top + 10;
+            if (top + panelRect.height > viewportHeight - margin) {
+                top = anchorRect.bottom - panelRect.height - 10;
+            }
+            if (top < margin) {
+                top = Math.max(margin, Math.min(fallbackTop, viewportHeight - panelRect.height - margin));
+            }
+
+            panel.style.left = `${left}px`;
+            panel.style.top = `${top}px`;
+            panel.style.visibility = 'visible';
+        });
+    }
+
+    openMinionInitiativeModal(groupId, anchorElement = null) {
+        const group = this.minionGroups.find(item => item.id === groupId);
+        if (!group) {
+            return;
+        }
+
+        const panels = this.loadEmbeddedPanelList();
+        if (!panels.length) {
+            this.setStatus('Create an initiative panel first.');
+            return;
+        }
+
+        const modal = document.getElementById('minion-initiative-modal');
+        const subtitle = document.getElementById('minion-initiative-subtitle');
+        const options = document.getElementById('minion-initiative-options');
+        if (!modal || !subtitle || !options) {
+            return;
+        }
+
+        this.pendingMinionGroupId = groupId;
+        this.pendingMinionAnchorElement = anchorElement;
+        options.innerHTML = '';
+
+        let disabledCount = 0;
+
+        panels.forEach(panel => {
+            const alreadyAdded = this.panelAlreadyHasMinionGroup(panel.id, group);
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.className = 'interjection-option-button';
+            button.textContent = alreadyAdded ? `${panel.name} (Already added)` : panel.name;
+            button.disabled = alreadyAdded;
+            if (alreadyAdded) {
+                disabledCount += 1;
+            } else {
+                button.addEventListener('click', () => this.addMinionGroupToInitiativePanel(groupId, panel.id, panel.name));
+            }
+            options.appendChild(button);
+        });
+
+        subtitle.textContent = disabledCount === panels.length
+            ? `${group.name} is already in every panel.`
+            : `Choose a panel for ${group.name}. Disabled options already contain this minion group.`;
+
+        modal.classList.add('open');
+        modal.setAttribute('aria-hidden', 'false');
+        this.positionMinionInitiativeModal(anchorElement);
+    }
+
+    closeMinionInitiativeModal() {
+        const modal = document.getElementById('minion-initiative-modal');
+        if (!modal) {
+            return;
+        }
+
+        modal.classList.remove('open');
+        modal.setAttribute('aria-hidden', 'true');
+        this.pendingMinionGroupId = null;
+        this.pendingMinionAnchorElement = null;
+
+        const panel = modal.querySelector('.modal-panel');
+        if (panel) {
+            panel.style.left = '';
+            panel.style.top = '';
+            panel.style.visibility = '';
+        }
+    }
+
+    addMinionGroupToInitiativePanel(groupId, panelId, panelName) {
+        const group = this.minionGroups.find(item => item.id === groupId);
+        if (!group || !panelId) {
+            return;
+        }
+
+        const storageKey = `beatInitiativeTracks:${panelId}`;
+        let tracks = [];
+        try {
+            const raw = localStorage.getItem(storageKey);
+            const parsed = raw ? JSON.parse(raw) : [];
+            tracks = Array.isArray(parsed) ? parsed : [];
+        } catch (error) {
+            tracks = [];
+        }
+
+        if (!tracks.length) {
+            tracks = [this.createEmptyTrack('Initiative Track 1')];
+        }
+
+        const activeTrackId = this.loadActiveTrackSelection(panelId);
+        const targetTrackIndex = Math.max(0, tracks.findIndex(track => track.id === activeTrackId));
+        const alreadyAdded = this.panelAlreadyHasMinionGroup(panelId, group);
+
+        if (alreadyAdded) {
+            this.setStatus(`${group.name} is already in ${panelName || 'that panel'}.`);
+            this.closeMinionInitiativeModal();
+            return;
+        }
+
+        const targetTrack = { ...tracks[targetTrackIndex] };
+        const existingCharacters = Array.isArray(targetTrack.characters)
+            ? targetTrack.characters.map(character => ({ ...character }))
+            : [];
+
+        const currentTheme = localStorage.getItem('diceRollerTheme') || 'dark';
+        const palette = this.getPaletteForTheme(currentTheme);
+        const recycledColorIndices = Array.isArray(targetTrack.recycledColorIndices)
+            ? targetTrack.recycledColorIndices.filter(index => Number.isFinite(index))
+            : [];
+        let nextColorIndex = Number.isFinite(targetTrack.nextColorIndex) ? targetTrack.nextColorIndex : 0;
+        let paletteIndex = nextColorIndex;
+
+        if (recycledColorIndices.length) {
+            const recycled = recycledColorIndices.shift();
+            if (Number.isFinite(recycled)) {
+                paletteIndex = recycled;
+            }
+        } else {
+            nextColorIndex += 1;
+        }
+
+        const color = palette[paletteIndex % palette.length];
+
+        const character = {
+            id: `char-${Date.now()}-${Math.floor(Math.random() * 10000)}`,
+            name: this.getUniqueCharacterName(existingCharacters, group.name),
+            isMinionGroup: true,
+            sourceMinionGroupId: group.id,
+            sourceMinionGroupName: group.name,
+            paletteIndex,
+            color,
+            defeated: false,
+            defeatedAtStep: null,
+            defeatedAtRound: null
+        };
+
+        existingCharacters.push(character);
+        targetTrack.characters = existingCharacters;
+        targetTrack.recycledColorIndices = recycledColorIndices;
+        targetTrack.nextColorIndex = nextColorIndex;
+        targetTrack.activeCharacterId = targetTrack.activeCharacterId || character.id;
+
+        tracks[targetTrackIndex] = targetTrack;
+
+        try {
+            localStorage.setItem(storageKey, JSON.stringify(tracks));
+            this.refreshEmbeddedPanelFrame(panelId);
+            this.setStatus(`Added ${group.name} to ${panelName || 'selected panel'}.`);
+        } catch (error) {
+            this.setStatus('Could not add minion group to initiative panel.');
+        }
+
+        this.closeMinionInitiativeModal();
+    }
+
+    refreshEmbeddedPanelFrame(panelId) {
+        if (this.embeddedMode || !panelId) {
+            return;
+        }
+
+        const iframes = document.querySelectorAll('.initiative-embedded-iframe');
+        if (!iframes.length) {
+            return;
+        }
+
+        iframes.forEach((iframe) => {
+            try {
+                const source = iframe.getAttribute('src') || '';
+                if (!source) {
+                    return;
+                }
+
+                const url = new URL(source, window.location.href);
+                if (url.searchParams.get('panelKey') !== panelId) {
+                    return;
+                }
+
+                url.searchParams.set('_refresh', String(Date.now()));
+                iframe.setAttribute('src', url.toString());
+            } catch (error) {
+                // Best effort refresh only.
+            }
+        });
+    }
+
+    updateMinionTraits(groupId, traits) {
+        const group = this.minionGroups.find(item => item.id === groupId);
+        if (!group) {
+            return;
+        }
+
+        group.traits = traits;
+        this.saveMinionGroupsToStorage();
+    }
+
+    setMinionHealthDamage(groupId, damage) {
+        const group = this.minionGroups.find(item => item.id === groupId);
+        if (!group) {
+            return;
+        }
+
+        const config = this.minionSizeConfig[group.sizeKey];
+        if (!config) {
+            return;
+        }
+
+        const nextDamage = Math.max(0, Math.min(config.max, damage));
+        group.healthDamage = group.healthDamage === nextDamage
+            ? Math.max(0, nextDamage - 1)
+            : nextDamage;
+        this.renderMinionGroups();
+        this.saveMinionGroupsToStorage();
+    }
+
+    setMinionCohesionDamage(groupId, damage) {
+        const group = this.minionGroups.find(item => item.id === groupId);
+        if (!group) {
+            return;
+        }
+
+        const config = this.minionSizeConfig[group.sizeKey];
+        if (!config) {
+            return;
+        }
+
+        const cohesionMax = Math.floor(config.max / 2);
+        const nextDamage = Math.max(0, Math.min(cohesionMax, damage));
+        group.cohesionDamage = group.cohesionDamage === nextDamage
+            ? Math.max(0, nextDamage - 1)
+            : nextDamage;
+        this.renderMinionGroups();
+        this.saveMinionGroupsToStorage();
+    }
+
+    getMinionThresholdLabels(maxValue) {
+        const labels = new Map();
+        this.minionDieThresholds
+            .filter(threshold => threshold.max <= maxValue)
+            .forEach(threshold => {
+                labels.set(threshold.max, threshold.die);
+            });
+        return labels;
+    }
+
+    getCurrentMinionFoundationDie(maxValue, healthDamage) {
+        const remainingHealth = Math.max(0, maxValue - healthDamage);
+        const availableThresholds = this.minionDieThresholds
+            .filter(threshold => threshold.max <= maxValue)
+            .sort((a, b) => a.max - b.max);
+        if (!remainingHealth) {
+            return 'defeated';
+        }
+
+        const matched = availableThresholds.find(threshold => remainingHealth < threshold.max);
+        if (matched) {
+            return matched.die;
+        }
+
+        const highest = availableThresholds[availableThresholds.length - 1];
+        return highest ? highest.die : 'd4';
+    }
+
+    renderMinionGroups() {
+        const list = document.getElementById('minion-groups-list');
+        const empty = document.getElementById('minion-groups-empty');
+        if (!list || !empty || this.embeddedMode) {
+            return;
+        }
+
+        list.innerHTML = '';
+
+        if (!this.minionGroups.length) {
+            empty.style.display = 'block';
+            return;
+        }
+
+        empty.style.display = 'none';
+
+        this.minionGroups.forEach((group) => {
+            const config = this.minionSizeConfig[group.sizeKey];
+            if (!config) {
+                return;
+            }
+            const currentFoundationDie = this.getCurrentMinionFoundationDie(config.max, group.healthDamage);
+
+            const card = document.createElement('article');
+            card.className = 'minion-group-card';
+
+            const header = document.createElement('div');
+            header.className = 'minion-group-card-header';
+
+            const titleWrap = document.createElement('div');
+            const title = document.createElement('h3');
+            title.className = 'minion-group-title';
+            title.textContent = group.name;
+
+            const subtitle = document.createElement('div');
+            subtitle.className = 'minion-group-subtitle';
+            subtitle.textContent = `${config.label} • ${config.die}`;
+
+            const foundationWrap = document.createElement('div');
+            foundationWrap.className = 'minion-foundation';
+
+            const foundationLabel = document.createElement('span');
+            foundationLabel.className = 'minion-foundation-title';
+            foundationLabel.textContent = 'Current Foundation';
+
+            const foundationVisual = document.createElement('div');
+            foundationVisual.className = `minion-foundation-visual${currentFoundationDie === 'defeated' ? ' defeated' : ''}`;
+
+            if (currentFoundationDie !== 'defeated') {
+                const shape = document.createElement('div');
+                shape.className = `minion-foundation-shape ${currentFoundationDie}-shape`;
+                foundationVisual.appendChild(shape);
+            }
+
+            const foundationDieLabel = document.createElement('span');
+            foundationDieLabel.className = 'minion-foundation-die';
+            foundationDieLabel.textContent = currentFoundationDie === 'defeated' ? 'Defeated' : currentFoundationDie.toUpperCase();
+            foundationVisual.appendChild(foundationDieLabel);
+
+            foundationWrap.appendChild(foundationLabel);
+            foundationWrap.appendChild(foundationVisual);
+
+            titleWrap.appendChild(title);
+            titleWrap.appendChild(subtitle);
+            titleWrap.appendChild(foundationWrap);
+
+            const removeButton = document.createElement('button');
+            removeButton.type = 'button';
+            removeButton.className = 'gm-action-button';
+            removeButton.textContent = 'Remove';
+            removeButton.addEventListener('click', () => this.removeMinionGroup(group.id));
+
+            const addToInitiativeButton = document.createElement('button');
+            addToInitiativeButton.type = 'button';
+            addToInitiativeButton.className = 'gm-action-button';
+            addToInitiativeButton.textContent = 'Add to Initiative';
+            addToInitiativeButton.addEventListener('click', (event) => this.openMinionInitiativeModal(group.id, event.currentTarget));
+
+            const headerActions = document.createElement('div');
+            headerActions.className = 'minion-card-actions';
+            headerActions.appendChild(addToInitiativeButton);
+            headerActions.appendChild(removeButton);
+
+            header.appendChild(titleWrap);
+            header.appendChild(headerActions);
+
+            const traitsLabel = document.createElement('label');
+            traitsLabel.className = 'minion-traits-label';
+            traitsLabel.textContent = 'Traits';
+
+            const traitsInput = document.createElement('textarea');
+            traitsInput.className = 'minion-traits-input';
+            traitsInput.rows = 2;
+            traitsInput.value = group.traits || '';
+            traitsInput.placeholder = 'Add traits...';
+            traitsInput.addEventListener('input', (event) => {
+                this.updateMinionTraits(group.id, event.target.value);
+            });
+
+            const healthSection = document.createElement('section');
+            healthSection.className = 'minion-section minion-health-section';
+
+            const healthHeading = document.createElement('h4');
+            healthHeading.className = 'minion-section-title';
+            healthHeading.textContent = `Health (${config.max})`;
+
+            const healthGrid = document.createElement('div');
+            healthGrid.className = 'minion-health-grid';
+            healthGrid.style.gridTemplateColumns = `repeat(${config.columns}, minmax(0, 1fr))`;
+
+            const thresholdLabels = this.getMinionThresholdLabels(config.max);
+
+            for (let value = 1; value <= config.max; value++) {
+                const healthValue = config.max - value + 1;
+                const box = document.createElement('button');
+                box.type = 'button';
+                box.className = `minion-box${value <= group.healthDamage ? ' filled' : ''}`;
+                box.setAttribute('aria-label', `Set damage to ${value} (health ${healthValue})`);
+                box.addEventListener('click', () => this.setMinionHealthDamage(group.id, value));
+
+                const valueLabel = document.createElement('span');
+                valueLabel.className = 'minion-box-value';
+                valueLabel.textContent = `${healthValue}`;
+                box.appendChild(valueLabel);
+
+                if (thresholdLabels.has(healthValue)) {
+                    const dieLabel = document.createElement('span');
+                    dieLabel.className = 'minion-box-die';
+                    dieLabel.textContent = thresholdLabels.get(healthValue);
+                    box.appendChild(dieLabel);
+                }
+
+                healthGrid.appendChild(box);
+            }
+
+            const cohesionSection = document.createElement('section');
+            cohesionSection.className = 'minion-section minion-cohesion-section';
+
+            const cohesionMax = Math.floor(config.max / 2);
+            const cohesionHeading = document.createElement('h4');
+            cohesionHeading.className = 'minion-section-title';
+            cohesionHeading.textContent = `Cohesion (${cohesionMax})`;
+
+            const cohesionRow = document.createElement('div');
+            cohesionRow.className = 'minion-cohesion-row';
+            cohesionRow.style.gridTemplateColumns = `repeat(${cohesionMax}, minmax(0, 1fr))`;
+
+            for (let value = 1; value <= cohesionMax; value++) {
+                const box = document.createElement('button');
+                box.type = 'button';
+                box.className = `minion-box cohesion${value <= group.cohesionDamage ? ' filled' : ''}`;
+                box.setAttribute('aria-label', `Set cohesion damage to ${value}`);
+                box.addEventListener('click', () => this.setMinionCohesionDamage(group.id, value));
+
+                const valueLabel = document.createElement('span');
+                valueLabel.className = 'minion-box-value';
+                valueLabel.textContent = `${value}`;
+                box.appendChild(valueLabel);
+
+                cohesionRow.appendChild(box);
+            }
+
+            healthSection.appendChild(healthHeading);
+            healthSection.appendChild(healthGrid);
+            cohesionSection.appendChild(cohesionHeading);
+            cohesionSection.appendChild(cohesionRow);
+
+            card.appendChild(header);
+            card.appendChild(traitsLabel);
+            card.appendChild(traitsInput);
+            card.appendChild(healthSection);
+            card.appendChild(cohesionSection);
+            list.appendChild(card);
+        });
+    }
+
     handleAddCharacter() {
         const nameInput = document.getElementById('character-name');
         const colorInput = document.getElementById('character-color');
@@ -629,9 +1380,8 @@ class GmScreen {
         }
 
         const activePalette = this.getPaletteForTheme(this.getCurrentTheme());
-        const paletteIndex = this.nextColorIndex;
+        const paletteIndex = this.getNextPaletteIndexFromState();
         const assignedColor = activePalette[paletteIndex % activePalette.length];
-        this.nextColorIndex += 1;
 
         const character = {
             id: `char-${Date.now()}-${Math.floor(Math.random() * 10000)}`,
@@ -652,6 +1402,7 @@ class GmScreen {
         this.updateCharacterColorPreview();
         this.syncCharacterSelectors();
         this.updateSelectIndicators();
+        this.updateCharacterColorPreview();
         this.renderTracker();
         this.setStatus(`Added ${character.name}.`);
     }
@@ -663,7 +1414,10 @@ class GmScreen {
         }
 
         const palette = this.getPaletteForTheme(this.getCurrentTheme());
-        colorInput.value = palette[this.nextColorIndex % palette.length];
+        const previewIndex = Array.isArray(this.recycledColorIndices) && this.recycledColorIndices.length
+            ? this.recycledColorIndices[0]
+            : this.nextColorIndex;
+        colorInput.value = palette[previewIndex % palette.length];
     }
 
     getCurrentTheme() {
@@ -866,6 +1620,7 @@ class GmScreen {
 
         this.syncCharacterSelectors();
         this.updateSelectIndicators();
+        this.updateCharacterColorPreview();
         this.renderTracker();
     }
 
@@ -1399,6 +2154,8 @@ class GmScreen {
             return;
         }
 
+        this.recyclePaletteIndexToState(characterToRemove.paletteIndex);
+
         this.characters = this.characters.filter(character => character.id !== characterId);
 
         const beatsBefore = this.beats.length;
@@ -1779,8 +2536,28 @@ class GmScreen {
             svg.appendChild(marker);
         });
 
+        this.updateCharacterColorPreview();
+
         this.persistActiveTrackState();
         this.refreshTrackSelector();
+    }
+
+    syncThemeToEmbeddedPanels(theme) {
+        if (this.embeddedMode) {
+            return;
+        }
+
+        const iframes = document.querySelectorAll('.initiative-embedded-iframe');
+        iframes.forEach((iframe) => {
+            try {
+                iframe.contentWindow?.postMessage({
+                    type: 'beat-theme-sync',
+                    theme
+                }, '*');
+            } catch (error) {
+                // Best effort sync only.
+            }
+        });
     }
 
     initializeTheme() {
@@ -1815,16 +2592,11 @@ class GmScreen {
         this.setTheme(newTheme);
     }
 
-    setTheme(theme) {
+    setTheme(theme, persist = true) {
         const body = document.body;
         const toggleButton = document.getElementById('theme-toggle');
-
-        if (!toggleButton) {
-            return;
-        }
-
-        const toggleIcon = toggleButton.querySelector('.theme-toggle-icon');
-        const toggleText = toggleButton.querySelector('.theme-toggle-text');
+        const toggleIcon = toggleButton ? toggleButton.querySelector('.theme-toggle-icon') : null;
+        const toggleText = toggleButton ? toggleButton.querySelector('.theme-toggle-text') : null;
 
         body.classList.remove('light-mode', 'high-contrast-mode');
 
@@ -1846,14 +2618,18 @@ class GmScreen {
                 break;
         }
 
-            this.applyThemePaletteToCharacters(theme);
-            this.updateCharacterColorPreview();
-            this.syncCharacterSelectors();
-            this.updateSelectIndicators();
-            this.renderTracker();
-            this.renderCharacterLegend();
+        this.applyThemePaletteToCharacters(theme);
+        this.updateCharacterColorPreview();
+        this.syncCharacterSelectors();
+        this.updateSelectIndicators();
+        this.renderTracker();
+        this.renderCharacterLegend();
 
-        localStorage.setItem('diceRollerTheme', theme);
+        if (persist) {
+            localStorage.setItem('diceRollerTheme', theme);
+        }
+
+        this.syncThemeToEmbeddedPanels(theme);
     }
 }
 

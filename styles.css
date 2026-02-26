@@ -1466,6 +1466,25 @@ body.high-contrast-mode .nav-link-button {
     display: flex;
 }
 
+#minion-initiative-modal {
+    background: transparent;
+    align-items: stretch;
+    justify-content: stretch;
+    padding: 0;
+}
+
+#minion-initiative-modal.open {
+    display: block;
+}
+
+#minion-initiative-modal .modal-panel {
+    position: fixed;
+    width: min(360px, calc(100vw - 24px));
+    max-height: min(420px, calc(100vh - 24px));
+    overflow-y: auto;
+    box-shadow: 0 12px 28px var(--shadow-primary);
+}
+
 .modal-panel {
     width: min(520px, 100%);
     background: var(--bg-secondary);
@@ -1507,6 +1526,13 @@ body.high-contrast-mode .nav-link-button {
 .interjection-option-button:hover {
     border-color: var(--border-active);
     box-shadow: 0 4px 10px var(--shadow-primary);
+}
+
+.interjection-option-button:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+    border-color: var(--bg-glass-border);
+    box-shadow: none;
 }
 
 .focus-change-actions {
@@ -1636,6 +1662,219 @@ body.manager-mode .initiative-track-controls {
     margin-bottom: 20px;
 }
 
+.minion-groups-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.minion-create-form {
+    display: grid;
+    grid-template-columns: 1.3fr 1fr auto;
+    gap: 8px;
+}
+
+.minion-create-form input,
+.minion-create-form select {
+    background: var(--bg-secondary);
+    border: 1px solid var(--bg-glass-border);
+    color: var(--text-primary);
+    border-radius: 8px;
+    padding: 8px 10px;
+    font-family: 'lexia', serif;
+}
+
+.minion-groups-list {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.minion-group-card {
+    border: 1px solid var(--bg-glass-border);
+    border-radius: 12px;
+    background: var(--bg-glass);
+    padding: 12px;
+    display: grid;
+    grid-template-rows: auto auto 72px auto auto;
+    gap: 10px;
+    align-content: start;
+}
+
+.minion-group-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+}
+
+.minion-card-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.minion-group-title {
+    font-family: 'museo', sans-serif;
+    color: var(--color-highlight);
+    font-size: 1rem;
+}
+
+.minion-group-subtitle {
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+}
+
+.minion-foundation {
+    margin-top: 6px;
+    display: grid;
+    gap: 4px;
+}
+
+.minion-foundation-title {
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+}
+
+.minion-foundation-visual {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 10px;
+    border: 1px solid var(--bg-glass-border);
+    border-radius: 8px;
+    background: var(--bg-secondary);
+    width: fit-content;
+}
+
+.minion-foundation-visual.defeated {
+    border-color: var(--color-accent);
+}
+
+.minion-foundation-shape {
+    display: inline-block;
+}
+
+.minion-foundation-shape.d4-shape {
+    width: 0;
+    height: 0;
+    border-left: 12px solid transparent;
+    border-right: 12px solid transparent;
+    border-bottom: 22px solid var(--color-tertiary);
+}
+
+.minion-foundation-shape.d6-shape {
+    width: 22px;
+    height: 22px;
+}
+
+.minion-foundation-shape.d8-shape {
+    width: 20px;
+    height: 24px;
+    margin: 0;
+}
+
+.minion-foundation-shape.d10-shape,
+.minion-foundation-shape.d12-shape,
+.minion-foundation-shape.d20-shape {
+    width: 24px;
+    height: 22px;
+    margin: 0;
+}
+
+.minion-foundation-die {
+    font-family: 'museo', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--color-highlight);
+}
+
+.minion-traits-label {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.minion-traits-input {
+    background: var(--bg-secondary);
+    border: 1px solid var(--bg-glass-border);
+    color: var(--text-primary);
+    border-radius: 8px;
+    padding: 8px 10px;
+    font-family: 'lexia', serif;
+    resize: none;
+    min-height: 72px;
+    max-height: 72px;
+    overflow-y: auto;
+}
+
+.minion-section {
+    display: grid;
+    gap: 6px;
+    align-content: start;
+}
+
+.minion-health-section,
+.minion-cohesion-section {
+    min-height: 0;
+}
+
+.minion-section-title {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.minion-health-grid {
+    display: grid;
+    gap: 4px;
+}
+
+.minion-cohesion-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(36px, 1fr));
+    gap: 4px;
+}
+
+.minion-box {
+    border: 1px solid var(--bg-glass-border);
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    border-radius: 6px;
+    aspect-ratio: 1 / 1;
+    min-height: 22px;
+    position: relative;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+}
+
+.minion-box:hover {
+    border-color: var(--border-active);
+}
+
+.minion-box.filled {
+    background: linear-gradient(120deg, var(--color-secondary), var(--color-accent));
+    color: var(--text-button);
+    border-color: var(--border-active);
+}
+
+.minion-box-value {
+    font-size: 0.7rem;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.minion-box-die {
+    position: absolute;
+    right: 3px;
+    bottom: 2px;
+    font-size: 0.5rem;
+    opacity: 0.9;
+}
+
 .gm-panel-body {
     flex: 1;
     display: flex;
@@ -1669,5 +1908,13 @@ body.manager-mode .initiative-track-controls {
 
     .beat-control-group {
         flex-wrap: wrap;
+    }
+
+    .minion-create-form {
+        grid-template-columns: 1fr;
+    }
+
+    .minion-groups-list {
+        grid-template-columns: 1fr;
     }
 }

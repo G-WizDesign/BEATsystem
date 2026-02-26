@@ -103,15 +103,39 @@
                         </div>
                     </div>
                 </div>
+
             </section>
 
             <section class="gm-panel">
                 <h2>Minion Groups</h2>
-                <div class="gm-panel-body">
-                    <p class="gm-placeholder-text">Add and manage minion groups here.</p>
+                <div class="minion-groups-panel">
+                    <form id="minion-group-form" class="minion-create-form">
+                        <input id="minion-group-name" type="text" maxlength="40" placeholder="Minion Group Name" required>
+                        <select id="minion-group-size" required>
+                            <option value="handful">Handful (d4)</option>
+                            <option value="small-group">Small Group (d6)</option>
+                            <option value="mob">Mob (d8)</option>
+                            <option value="unit">Unit (d10)</option>
+                            <option value="large-unit">Large Unit (d12)</option>
+                            <option value="horde">Horde (d20)</option>
+                        </select>
+                        <button type="submit" class="gm-action-button">Add Minion Group</button>
+                    </form>
+
+                    <div id="minion-groups-empty" class="gm-placeholder-text">No minion groups yet.</div>
+                    <div id="minion-groups-list" class="minion-groups-list" aria-label="Minion group cards"></div>
                 </div>
             </section>
         </main>
+    </div>
+
+    <div id="minion-initiative-modal" class="modal-overlay" aria-hidden="true">
+        <div class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="minion-initiative-title">
+            <h3 id="minion-initiative-title">Add Minion Group to Initiative</h3>
+            <p id="minion-initiative-subtitle" class="modal-subtitle">Choose which initiative panel to add this group to.</p>
+            <div id="minion-initiative-options" class="interjection-options"></div>
+            <button id="close-minion-initiative-modal" type="button" class="gm-action-button">Cancel</button>
+        </div>
     </div>
 
     <script src="gm-screen.js"></script>
